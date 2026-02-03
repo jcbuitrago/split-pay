@@ -19,6 +19,7 @@
     taxPercent: document.getElementById('taxPercent'),
     splitBtn: document.getElementById('splitBtn'),
     results: document.getElementById('results'),
+    grandTotal: document.getElementById('grandTotal'),
   };
 
   // Actions
@@ -50,23 +51,29 @@
   function splitBill() {
     if (state.people.length === 0 || state.products.length === 0) {
       els.results.innerHTML = '<li class="muted">Add people and products first.</li>';
+      if (els.grandTotal) els.grandTotal.textContent = '';
       return;
     }
     const rateInput = els.taxPercent ? Number(els.taxPercent.value) : 0;
     const taxRate = (isFinite(rateInput) && rateInput >= 0) ? rateInput : 0;
     const totals = new Map(state.people.map(p => [p.id, 0]));
+    let grand = 0;
     for (const prod of state.products) {
       const consumers = [...prod.consumers];
       if (consumers.length === 0) continue; // unassigned product ignored
       const adjustedPrice = prod.price * (1 + taxRate / 100);
       const share = adjustedPrice / consumers.length;
       for (const pid of consumers) totals.set(pid, totals.get(pid) + share);
+      grand += adjustedPrice;
     }
     els.results.innerHTML = state.people
       .map(p => {
         const amt = (totals.get(p.id) || 0);
         return `<li><strong>${escapeHtml(p.name)}</strong>: $${amt.toFixed(2)}</li>`;
       }).join('');
+    if (els.grandTotal) {
+      els.grandTotal.innerHTML = `<strong>Total (incl. tax):</strong> $${grand.toFixed(2)}`;
+    }
   }
 
   // Rendering
@@ -74,6 +81,7 @@
     renderPeople();
     renderProductsTable();
     els.results.innerHTML = ''; // clear results when state changes
+    if (els.grandTotal) els.grandTotal.textContent = '';
   }
 
   function renderPeople() {

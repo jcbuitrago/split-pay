@@ -1,0 +1,168 @@
+﻿document.addEventListener('DOMContentLoaded', () => {
+  // State
+  const state = {
+    people: [],           // [{ id, name }]
+    products: []          // [{ id, name, price, consumers: Set<personId> }]
+  };
+  let nextPersonId = 1;
+  let nextProductId = 1;
+
+  // Elements
+  const els = {
+    personName: document.getElementById('personName'),
+    addPersonBtn: document.getElementById('addPersonBtn'),
+    peopleList: document.getElementById('peopleList'),
+    productName: document.getElementById('productName'),
+    productPrice: document.getElementById('productPrice'),
+    addProductBtn: document.getElementById('addProductBtn'),
+    productsTableWrap: document.getElementById('productsTableWrap'),
+    taxPercent: document.getElementById('taxPercent'),
+    splitBtn: document.getElementById('splitBtn'),
+    results: document.getElementById('results'),
+  };
+
+  // Actions
+  function addPerson(name) {
+    const n = name.trim();
+    if (!n) return;
+    state.people.push({ id: nextPersonId++, name: n });
+    render();
+    els.personName.value = '';
+  }
+
+  function addProduct(name, priceInput) {
+    const n = name.trim();
+    const price = Number(priceInput);
+    if (!n || !isFinite(price) || price <= 0) return;
+    state.products.push({ id: nextProductId++, name: n, price, consumers: new Set() });
+    render();
+    els.productName.value = '';
+    els.productPrice.value = '';
+  }
+
+  function toggleConsumption(productId, personId, checked) {
+    const p = state.products.find(x => x.id === productId);
+    if (!p) return;
+    if (checked) p.consumers.add(personId);
+    else p.consumers.delete(personId);
+  }
+
+  function splitBill() {
+    if (state.people.length === 0 || state.products.length === 0) {
+      els.results.innerHTML = '<li class="muted">Add people and products first.</li>';
+      return;
+    }
+    const rateInput = els.taxPercent ? Number(els.taxPercent.value) : 0;
+    const taxRate = (isFinite(rateInput) && rateInput >= 0) ? rateInput : 0;
+    const totals = new Map(state.people.map(p => [p.id, 0]));
+    for (const prod of state.products) {
+      const consumers = [...prod.consumers];
+      if (consumers.length === 0) continue; // unassigned product ignored
+      const adjustedPrice = prod.price * (1 + taxRate / 100);
+      const share = adjustedPrice / consumers.length;
+      for (const pid of consumers) totals.set(pid, totals.get(pid) + share);
+    }
+    els.results.innerHTML = state.people
+      .map(p => {
+        const amt = (totals.get(p.id) || 0);
+        return `<li><strong>${escapeHtml(p.name)}</strong>: $${amt.toFixed(2)}</li>`;
+      }).join('');
+  }
+
+  // Rendering
+  function render() {
+    renderPeople();
+    renderProductsTable();
+    els.results.innerHTML = ''; // clear results when state changes
+  }
+
+  function renderPeople() {
+    if (state.people.length === 0) {
+      els.peopleList.innerHTML = '<li class="muted">No people yet.</li>';
+      return;
+    }
+    els.peopleList.innerHTML = state.people
+      .map(p => `<li>${escapeHtml(p.name)}</li>`)
+      .join('');
+  }
+
+  function renderProductsTable() {
+    const people = state.people;
+    const prods = state.products;
+
+    if (prods.length === 0) {
+      els.productsTableWrap.innerHTML = '<p class="muted">No products yet.</p>';
+      return;
+    }
+
+    // Table header with dynamic person columns
+    const header = `
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th class="right">Price ($)</th>
+          ${people.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}
+        </tr>
+      </thead>
+    `;
+
+    // Rows with checkboxes for each person
+    const rows = prods.map(prod => `
+      <tr data-product-id="${prod.id}">
+        <td>${escapeHtml(prod.name)}</td>
+        <td class="right">${prod.price.toFixed(2)}</td>
+        ${people.map(person => {
+          const checked = prod.consumers.has(person.id) ? 'checked' : '';
+          return `<td><input type="checkbox" data-pid="${prod.id}" data-uid="${person.id}" ${checked}></td>`;
+        }).join('')}
+      </tr>
+    `).join('');
+
+    els.productsTableWrap.innerHTML = `
+      <table>
+        ${header}
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Events
+  els.addPersonBtn.addEventListener('click', () => addPerson(els.personName.value));
+  els.personName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addPerson(els.personName.value);
+  });
+
+  els.addProductBtn.addEventListener('click', () =>
+    addProduct(els.productName.value, els.productPrice.value)
+  );
+  els.productName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addProduct(els.productName.value, els.productPrice.value);
+  });
+  els.productPrice.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addProduct(els.productName.value, els.productPrice.value);
+  });
+
+  els.productsTableWrap.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t && t.matches('input[type="checkbox"][data-pid][data-uid]')) {
+      const productId = Number(t.getAttribute('data-pid'));
+      const userId = Number(t.getAttribute('data-uid'));
+      toggleConsumption(productId, userId, t.checked);
+    }
+  });
+
+  els.splitBtn.addEventListener('click', splitBill);
+
+  // Utils
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  console.log('Split-Pay initialized');
+  // Initial render
+  render();
+});

@@ -16,6 +16,15 @@
     .right { text-align: right; }
     .muted { opacity: 0.8; font-size: 0.9rem; }
     .results li { margin: 0.25rem 0; }
+    /* People list: keep bullets, center names, remove on right */
+    #peopleList { padding-left: 1.25rem; margin: 0; }
+    #peopleList li { list-style: disc; }
+    #peopleList li .li-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.5rem; }
+    #peopleList li .person-name { text-align: center; }
+    /* Right-aligned remove column in products table */
+    th.remove-col, td.remove-col { text-align: right; width: 1%; white-space: nowrap; }
+    /* Optional: compact remove buttons */
+    button[data-remove-person], button[data-remove-product] { padding: 0.25rem 0.5rem; }
   </style>
 </head>
 <body>

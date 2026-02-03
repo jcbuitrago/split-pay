@@ -23,6 +23,19 @@
   };
 
   // Actions
+  function removePerson(personId) {
+    state.people = state.people.filter(p => p.id !== personId);
+    for (const prod of state.products) {
+      if (prod.consumers) prod.consumers.delete(personId);
+    }
+    render();
+  }
+
+  function removeProduct(productId) {
+    state.products = state.products.filter(p => p.id !== productId);
+    render();
+  }
+
   function addPerson(name) {
     const n = name.trim();
     if (!n) return;
@@ -90,7 +103,14 @@
       return;
     }
     els.peopleList.innerHTML = state.people
-      .map(p => `<li>${escapeHtml(p.name)}</li>`)
+      .map(p => `
+        <li>
+          <span class="li-row">
+            <span class="person-name">${escapeHtml(p.name)}</span>
+            <button data-remove-person="${p.id}" aria-label="Remove ${escapeHtml(p.name)}">Remove</button>
+          </span>
+        </li>
+      `)
       .join('');
   }
 
@@ -110,6 +130,7 @@
           <th>Product</th>
           <th class="right">Price ($)</th>
           ${people.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}
+          <th class="remove-col">Remove</th>
         </tr>
       </thead>
     `;
@@ -123,6 +144,7 @@
           const checked = prod.consumers.has(person.id) ? 'checked' : '';
           return `<td><input type="checkbox" data-pid="${prod.id}" data-uid="${person.id}" ${checked}></td>`;
         }).join('')}
+        <td class="remove-col"><button data-remove-product="${prod.id}" aria-label="Remove product ${escapeHtml(prod.name)}">Remove</button></td>
       </tr>
     `).join('');
 
@@ -158,6 +180,23 @@
       const productId = Number(t.getAttribute('data-pid'));
       const userId = Number(t.getAttribute('data-uid'));
       toggleConsumption(productId, userId, t.checked);
+    }
+  });
+
+  // Delegated clicks for removals
+  els.productsTableWrap.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.matches('button[data-remove-product]')) {
+      const id = Number(t.getAttribute('data-remove-product'));
+      removeProduct(id);
+    }
+  });
+
+  els.peopleList.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.matches('button[data-remove-person]')) {
+      const id = Number(t.getAttribute('data-remove-person'));
+      removePerson(id);
     }
   });
 

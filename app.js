@@ -101,10 +101,10 @@
     els.results.innerHTML = state.people
       .map(p => {
         const amt = (totals.get(p.id) || 0);
-        return `<li><strong>${escapeHtml(p.name)}</strong>: $${amt.toFixed(2)}</li>`;
+        return `<li><strong>${escapeHtml(p.name)}</strong>: $${formatCurrency(amt)}</li>`;
       }).join('');
     if (els.grandTotal) {
-      els.grandTotal.innerHTML = `<strong>Total (incl. tax):</strong> $${grand.toFixed(2)}`;
+      els.grandTotal.innerHTML = `<strong>Total (incl. tax):</strong> $${formatCurrency(grand)}`;
     }
   }
 
@@ -158,7 +158,7 @@
       <tr data-product-id="${prod.id}">
         <td>${escapeHtml(prod.name)}</td>
         <td><input type="number" class="qty-input" min="1" value="${prod.quantity || 1}" data-qty-pid="${prod.id}"></td>
-        <td class="right">${prod.price.toFixed(2)}</td>
+        <td class="right">${formatCurrency(prod.price)}</td>
         ${people.map(person => {
           const checked = prod.consumers.has(person.id) ? 'checked' : '';
           return `<td><input type="checkbox" data-pid="${prod.id}" data-uid="${person.id}" ${checked}></td>`;
@@ -242,6 +242,10 @@
     return s.replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+  }
+
+  function formatCurrency(amount) {
+    return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   console.log('Split-Pay initialized');

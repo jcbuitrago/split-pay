@@ -20,7 +20,23 @@
     splitBtn: document.getElementById('splitBtn'),
     results: document.getElementById('results'),
     grandTotal: document.getElementById('grandTotal'),
+    themeToggle: document.getElementById('themeToggle'),
   };
+
+  // Theme
+  function setTheme(theme) {
+    const t = theme === 'day' ? 'day' : 'night';
+    if (t === 'day') {
+      document.documentElement.setAttribute('data-theme', 'day');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    try { localStorage.setItem('splitpay-theme', t); } catch {}
+    if (els.themeToggle) {
+      els.themeToggle.textContent = t === 'day' ? '🌙 Night' : '☀️ Day';
+      els.themeToggle.setAttribute('aria-label', t === 'day' ? 'Switch to night theme' : 'Switch to day theme');
+    }
+  }
 
   // Actions
   function removePerson(personId) {
@@ -42,16 +58,18 @@
     state.people.push({ id: nextPersonId++, name: n });
     render();
     els.personName.value = '';
+    els.personName.focus();
   }
 
   function addProduct(name, priceInput) {
     const n = name.trim();
     const price = Number(priceInput);
     if (!n || !isFinite(price) || price <= 0) return;
-    state.products.push({ id: nextProductId++, name: n, price, consumers: new Set() });
+    state.products.push({ id: nextProductId++, name: n, price, quantity: 1, consumers: new Set() });
     render();
     els.productName.value = '';
     els.productPrice.value = '';
+    els.productName.focus();
   }
 
   function toggleConsumption(productId, personId, checked) {
@@ -74,7 +92,8 @@
     for (const prod of state.products) {
       const consumers = [...prod.consumers];
       if (consumers.length === 0) continue; // unassigned product ignored
-      const adjustedPrice = prod.price * (1 + taxRate / 100);
+      const qty = prod.quantity || 1;
+      const adjustedPrice = (prod.price * qty) * (1 + taxRate / 100);
       const share = adjustedPrice / consumers.length;
       for (const pid of consumers) totals.set(pid, totals.get(pid) + share);
       grand += adjustedPrice;
@@ -128,6 +147,7 @@
       <thead>
         <tr>
           <th>Product</th>
+          <th>Qty</th>
           <th class="right">Price ($)</th>
           ${people.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}
           <th class="remove-col">Remove</th>
@@ -139,6 +159,7 @@
     const rows = prods.map(prod => `
       <tr data-product-id="${prod.id}">
         <td>${escapeHtml(prod.name)}</td>
+        <td><input type="number" class="qty-input" min="1" value="${prod.quantity || 1}" data-qty-pid="${prod.id}"></td>
         <td class="right">${prod.price.toFixed(2)}</td>
         ${people.map(person => {
           const checked = prod.consumers.has(person.id) ? 'checked' : '';
@@ -180,6 +201,14 @@
       const productId = Number(t.getAttribute('data-pid'));
       const userId = Number(t.getAttribute('data-uid'));
       toggleConsumption(productId, userId, t.checked);
+    } else if (t && t.matches('input[type="number"][data-qty-pid]')) {
+      const productId = Number(t.getAttribute('data-qty-pid'));
+      const p = state.products.find(x => x.id === productId);
+      if (!p) return;
+      const q = Math.max(1, Math.floor(Number(t.value)) || 1);
+      p.quantity = q;
+      els.results.innerHTML = '';
+      if (els.grandTotal) els.grandTotal.textContent = '';
     }
   });
 
@@ -202,6 +231,14 @@
 
   els.splitBtn.addEventListener('click', splitBill);
 
+  // Theme toggle
+  if (els.themeToggle) {
+    els.themeToggle.addEventListener('click', () => {
+      const current = (document.documentElement.getAttribute('data-theme') === 'day') ? 'day' : 'night';
+      setTheme(current === 'day' ? 'night' : 'day');
+    });
+  }
+
   // Utils
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, c => ({
@@ -212,4 +249,12 @@
   console.log('Split-Pay initialized');
   // Initial render
   render();
+
+  // Initialize theme from storage
+  try {
+    const saved = localStorage.getItem('splitpay-theme');
+    setTheme(saved === 'day' ? 'day' : 'night');
+  } catch {
+    setTheme('night');
+  }
 });

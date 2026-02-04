@@ -20,6 +20,7 @@
     splitBtn: document.getElementById('splitBtn'),
     results: document.getElementById('results'),
     grandTotal: document.getElementById('grandTotal'),
+    taxAmount: document.getElementById('taxAmount'),
     themeToggle: document.getElementById('themeToggle'),
   };
 
@@ -83,20 +84,40 @@
     if (state.people.length === 0 || state.products.length === 0) {
       els.results.innerHTML = '<li class="muted">Add people and products first.</li>';
       if (els.grandTotal) els.grandTotal.textContent = '';
+      if (els.taxAmount) els.taxAmount.textContent = '';
       return;
     }
-    const rateInput = els.taxPercent ? Number(els.taxPercent.value) : 0;
-    const taxRate = (isFinite(rateInput) && rateInput >= 0) ? rateInput : 0;
+    const tipInput = els.taxPercent ? Number(els.taxPercent.value) : 0;
+    const tipRate = (isFinite(tipInput) && tipInput >= 0) ? tipInput : 0;
     const totals = new Map(state.people.map(p => [p.id, 0]));
+    let subtotal = 0;
     let grand = 0;
+    let tipTotal = 0;
+    
+    // Calculate subtotal for assigned products (includes 8% tax already)
     for (const prod of state.products) {
       const consumers = [...prod.consumers];
-      if (consumers.length === 0) continue; // unassigned product ignored
+      if (consumers.length === 0) continue;
       const qty = prod.quantity || 1;
-      const adjustedPrice = (prod.price * qty) * (1 + taxRate / 100);
-      const share = adjustedPrice / consumers.length;
+      subtotal += prod.price * qty;
+    }
+    
+    // Tip is calculated on pre-tax amount (subtract the 8% tax already included)
+    const preTaxAmount = subtotal / 1.08;
+    tipTotal = preTaxAmount * (tipRate / 100);
+    grand = subtotal + tipTotal;
+    
+    // Distribute to consumers
+    for (const prod of state.products) {
+      const consumers = [...prod.consumers];
+      if (consumers.length === 0) continue;
+      const qty = prod.quantity || 1;
+      const productSubtotal = prod.price * qty;
+      const productPortion = productSubtotal / subtotal; // proportion of this product
+      const productTip = tipTotal * productPortion;
+      const productTotal = productSubtotal + productTip;
+      const share = productTotal / consumers.length;
       for (const pid of consumers) totals.set(pid, totals.get(pid) + share);
-      grand += adjustedPrice;
     }
     els.results.innerHTML = state.people
       .map(p => {
@@ -114,7 +135,10 @@
         `;
       }).join('');
     if (els.grandTotal) {
-      els.grandTotal.innerHTML = `<strong>Total (incl. tax):</strong> $${formatCurrency(grand)}`;
+      els.grandTotal.innerHTML = `<strong>Total (incl. tip):</strong> $${formatCurrency(grand)}`;
+    }
+    if (els.taxAmount) {
+      els.taxAmount.innerHTML = `<strong>Tip paid:</strong> $${formatCurrency(tipTotal)}`;
     }
   }
 
@@ -124,6 +148,7 @@
     renderProductsTable();
     els.results.innerHTML = ''; // clear results when state changes
     if (els.grandTotal) els.grandTotal.textContent = '';
+    if (els.taxAmount) els.taxAmount.textContent = '';
   }
 
   function renderPeople() {

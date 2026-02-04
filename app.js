@@ -101,7 +101,17 @@
     els.results.innerHTML = state.people
       .map(p => {
         const amt = (totals.get(p.id) || 0);
-        return `<li><strong>${escapeHtml(p.name)}</strong>: $${formatCurrency(amt)}</li>`;
+        return `
+          <div class="result-card">
+            <div class="result-info">
+              <span class="result-name">${escapeHtml(p.name)}</span>
+              <span class="result-amount">$${formatCurrency(amt)}</span>
+            </div>
+            <button class="share-btn" data-share-name="${escapeHtml(p.name)}" data-share-amount="${formatCurrency(amt)}" aria-label="Share ${escapeHtml(p.name)}'s bill">
+              📤
+            </button>
+          </div>
+        `;
       }).join('');
     if (els.grandTotal) {
       els.grandTotal.innerHTML = `<strong>Total (incl. tax):</strong> $${formatCurrency(grand)}`;
@@ -228,6 +238,18 @@
   });
 
   els.splitBtn.addEventListener('click', splitBill);
+
+  // Share button handler
+  els.results.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.matches('button.share-btn[data-share-name][data-share-amount]')) {
+      const name = t.getAttribute('data-share-name');
+      const amount = t.getAttribute('data-share-amount');
+      const message = `Hi ${name}! Your share of the bill is $${amount}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  });
 
   // Theme toggle
   if (els.themeToggle) {

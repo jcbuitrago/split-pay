@@ -118,17 +118,15 @@
 
   function renderPeople() {
     if (state.people.length === 0) {
-      els.peopleList.innerHTML = '<li class="muted">No people yet.</li>';
+      els.peopleList.innerHTML = '<p class="muted">No people yet.</p>';
       return;
     }
     els.peopleList.innerHTML = state.people
       .map(p => `
-        <li>
-          <span class="li-row">
-            <span class="person-name">${escapeHtml(p.name)}</span>
-            <button data-remove-person="${p.id}" aria-label="Remove ${escapeHtml(p.name)}">Remove</button>
-          </span>
-        </li>
+        <div class="person-chip">
+          <span class="chip-name">${escapeHtml(p.name)}</span>
+          <button class="chip-remove" data-remove-person="${p.id}" aria-label="Remove ${escapeHtml(p.name)}">&times;</button>
+        </div>
       `)
       .join('');
   }
@@ -223,7 +221,7 @@
 
   els.peopleList.addEventListener('click', (e) => {
     const t = e.target;
-    if (t && t.matches('button[data-remove-person]')) {
+    if (t && t.matches('button.chip-remove[data-remove-person]')) {
       const id = Number(t.getAttribute('data-remove-person'));
       removePerson(id);
     }

@@ -158,7 +158,7 @@
           <th>Qty</th>
           <th class="right">Price ($)</th>
           ${people.map(p => `<th>${escapeHtml(p.name)}</th>`).join('')}
-          <th class="remove-col">Remove</th>
+          <th class="remove-col"></th>
         </tr>
       </thead>
     `;
@@ -173,7 +173,7 @@
           const checked = prod.consumers.has(person.id) ? 'checked' : '';
           return `<td><input type="checkbox" data-pid="${prod.id}" data-uid="${person.id}" ${checked}></td>`;
         }).join('')}
-        <td class="remove-col"><button data-remove-product="${prod.id}" aria-label="Remove product ${escapeHtml(prod.name)}">Remove</button></td>
+        <td class="remove-col"><button data-remove-product="${prod.id}" aria-label="Remove product ${escapeHtml(prod.name)}">&times;</button></td>
       </tr>
     `).join('');
 

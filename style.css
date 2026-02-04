@@ -24,7 +24,18 @@
   --sticky-bg: rgba(249, 240, 227, 0.95);
 }
 html, body { height: 100%; }
-body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); display: grid; place-items: center; }
+body { 
+  margin: 0; 
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+  background: var(--bg); 
+  color: var(--fg); 
+  display: grid; 
+  place-items: center;
+  font-size: 16px;
+}
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+}
 .container { text-align: center; }
 h1 { font-weight: 700; letter-spacing: 0.02em; }
 button { 
@@ -34,6 +45,7 @@ button {
   padding: 0.75rem 1.25rem; 
   border-radius: 12px; 
   font-weight: 600; 
+  font-size: 1rem;
   cursor: pointer;
   box-shadow: 0 2px 8px var(--shadow-soft), 0 1px 3px var(--shadow);
   transition: all 0.2s ease;

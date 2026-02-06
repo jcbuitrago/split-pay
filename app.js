@@ -17,6 +17,8 @@
     addProductBtn: document.getElementById('addProductBtn'),
     productsTableWrap: document.getElementById('productsTableWrap'),
     taxPercent: document.getElementById('taxPercent'),
+    taxPercentInput: document.getElementById('taxPercentInput'),
+    taxIncluded: document.getElementById('taxIncluded'),
     splitBtn: document.getElementById('splitBtn'),
     results: document.getElementById('results'),
     grandTotal: document.getElementById('grandTotal'),
@@ -87,14 +89,18 @@
       if (els.taxAmount) els.taxAmount.textContent = '';
       return;
     }
+    const taxInput = els.taxPercentInput ? Number(els.taxPercentInput.value) : 0;
+    const taxPercent = (isFinite(taxInput) && taxInput >= 0) ? taxInput : 8; // default to 8% if not specified
     const tipInput = els.taxPercent ? Number(els.taxPercent.value) : 0;
     const tipRate = (isFinite(tipInput) && tipInput >= 0) ? tipInput : 0;
+    const taxIsIncluded = els.taxIncluded ? els.taxIncluded.checked : true;
     const totals = new Map(state.people.map(p => [p.id, 0]));
     let subtotal = 0;
     let grand = 0;
     let tipTotal = 0;
+    let taxTotal = 0;
     
-    // Calculate subtotal for assigned products (includes 8% tax already)
+    // Calculate subtotal for assigned products
     for (const prod of state.products) {
       const consumers = [...prod.consumers];
       if (consumers.length === 0) continue;
@@ -102,20 +108,43 @@
       subtotal += prod.price * qty;
     }
     
-    // Tip is calculated on pre-tax amount (subtract the 8% tax already included)
-    const preTaxAmount = subtotal / 1.08;
-    tipTotal = preTaxAmount * (tipRate / 100);
-    grand = subtotal + tipTotal;
+    // Calculate tip and total based on whether tax is included
+    let preTaxAmount;
+    if (taxIsIncluded) {
+      // Tax already included: extract pre-tax amount
+      const taxMultiplier = 1 + (taxPercent / 100);
+      preTaxAmount = subtotal / taxMultiplier;
+      taxTotal = subtotal - preTaxAmount;
+      tipTotal = preTaxAmount * (tipRate / 100);
+      grand = subtotal + tipTotal;
+    } else {
+      // Tax not included: prices are pre-tax
+      preTaxAmount = subtotal;
+      tipTotal = preTaxAmount * (tipRate / 100);
+      taxTotal = preTaxAmount * (taxPercent / 100);
+      grand = preTaxAmount + taxTotal + tipTotal;
+    }
     
-    // Distribute to consumers
+    // Distribute to consumers proportionally
     for (const prod of state.products) {
       const consumers = [...prod.consumers];
       if (consumers.length === 0) continue;
       const qty = prod.quantity || 1;
-      const productSubtotal = prod.price * qty;
-      const productPortion = productSubtotal / subtotal; // proportion of this product
-      const productTip = tipTotal * productPortion;
-      const productTotal = productSubtotal + productTip;
+      const productAmount = prod.price * qty;
+      const productPortion = productAmount / subtotal; // proportion of this product
+      
+      let productTotal;
+      if (taxIsIncluded) {
+        // Product already has tax, just add proportional tip
+        const productTip = tipTotal * productPortion;
+        productTotal = productAmount + productTip;
+      } else {
+        // Product doesn't have tax, add both tax and tip
+        const productTax = taxTotal * productPortion;
+        const productTip = tipTotal * productPortion;
+        productTotal = productAmount + productTax + productTip;
+      }
+      
       const share = productTotal / consumers.length;
       for (const pid of consumers) totals.set(pid, totals.get(pid) + share);
     }

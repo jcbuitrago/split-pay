@@ -19,18 +19,16 @@ export function renderProductsTable() {
     
     return `
       <div class="product-card" data-product-id="${prod.id}">
-        <div class="product-header">
-          <div class="product-main">
-            <h3 class="product-name">${escapeHtml(prod.name)}</h3>
-            <div class="product-qty">
-              <label>Qty:</label>
-              <input type="number" class="qty-input" min="1" value="${prod.quantity || 1}" data-qty-pid="${prod.id}">
-            </div>
-            <div class="product-price">$${formatCurrency(prod.price)}</div>
-            <button class="assign-button" data-toggle-menu="${prod.id}">Assign People</button>
+        <div class="product-row-top">
+          <span class="product-name">${escapeHtml(prod.name)}</span>
+          <div class="product-qty">
+            <label>Qty:</label>
+            <input type="number" class="qty-input" min="1" value="${prod.quantity || 1}" data-qty-pid="${prod.id}">
           </div>
-          <button class="product-remove" data-remove-product="${prod.id}" aria-label="Remove product ${escapeHtml(prod.name)}">&times;</button>
+          <span class="product-price">$${formatCurrency(prod.price)}</span>
+          <button class="product-remove" data-remove-product="${prod.id}" aria-label="Remove product">&times;</button>
         </div>
+        <button class="assign-button" data-toggle-menu="${prod.id}">Assign People</button>
         <div class="people-menu" id="people-menu-${prod.id}" style="display: none;">
           ${people.length > 0 ? `
             <div class="menu-option" data-assign-all="${prod.id}">

@@ -66,6 +66,33 @@
       display: flex;
       align-items: center;
     }
+    .row label {
+      white-space: nowrap;
+      min-width: fit-content;
+      margin-right: 0;
+    }
+    .row input[type="number"] {
+      flex: 1;
+      min-width: 0;
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .input-group label {
+      flex-shrink: 0;
+    }
+    .input-group input {
+      flex: 1;
+      min-width: 80px;
+    }
+    .input-group button {
+      height: 100%;
+      padding: 0.625rem 1rem;
+    }
     @media (max-width: 640px) {
       .row { 
         gap: 0.625rem;
@@ -407,8 +434,10 @@
     <section id="peopleSection">
       <h2>People</h2>
       <div class="row">
-        <input id="personName" type="text" placeholder="Name (e.g., Alex)" autocapitalize="words" enterkeyhint="next" />
-        <button id="addPersonBtn">Add person</button>
+        <div class="input-group" style="flex: 1;">
+          <input id="personName" type="text" placeholder="Name (e.g., Alex)" autocapitalize="words" enterkeyhint="next" />
+          <button id="addPersonBtn">Add person</button>
+        </div>
       </div>
       <ul id="peopleList"></ul>
     </section>
@@ -416,20 +445,26 @@
     <section id="productsSection">
       <h2>Products</h2>
       <div class="row">
-        <input id="productName" type="text" placeholder="Product (e.g., Pizza)" autocapitalize="words" enterkeyhint="next" />
-        <input id="productPrice" type="number" step="0.01" placeholder="Price (e.g., 12.50)" inputmode="decimal" enterkeyhint="done" />
-        <button id="addProductBtn">Add product</button>
+        <div class="input-group" style="flex: 1;">
+          <input id="productName" type="text" placeholder="Product (e.g., Pizza)" autocapitalize="words" enterkeyhint="next" />
+          <input id="productPrice" type="number" step="0.01" placeholder="Price (e.g., 12.50)" inputmode="decimal" enterkeyhint="done" />
+        </div>
       </div>
+      <button id="addProductBtn" style="margin-top: 0.75rem; width: 100%;">Add product</button>
       <div id="productsTableWrap"></div>
     </section>
 
     <section id="splitSection">
       <h2>Split</h2>
       <div class="row">
-        <label for="taxPercent">Tax (%)</label>
-        <input id="taxPercentInput" type="number" step="0.01" min="0" placeholder="e.g., 8" inputmode="decimal" enterkeyhint="next" />
-        <label for="tipPercent">Tip (%)</label>
-        <input id="taxPercent" type="number" step="0.01" min="0" placeholder="e.g., 10" inputmode="decimal" enterkeyhint="done" />
+        <div class="input-group">
+          <label for="taxPercent">Tax (%)</label>
+          <input id="taxPercentInput" type="number" step="0.01" min="0" placeholder="e.g., 8" inputmode="decimal" enterkeyhint="next" />
+        </div>
+        <div class="input-group">
+          <label for="tipPercent">Tip (%)</label>
+          <input id="taxPercent" type="number" step="0.01" min="0" placeholder="e.g., 10" inputmode="decimal" enterkeyhint="done" />
+        </div>
       </div>
       <div class="row" style="margin-top: 0.5rem;">
         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">

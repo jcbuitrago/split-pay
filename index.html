@@ -60,6 +60,10 @@
       display: flex; 
       gap: 0.5rem; 
       flex-wrap: wrap;
+      align-items: stretch;
+    }
+    .row > * {
+      display: flex;
       align-items: center;
     }
     @media (max-width: 640px) {
@@ -186,6 +190,7 @@
       }
     }
     .qty-input { width: 64px; }
+    #productsTableWrap { margin-top: 1.25rem; }
     /* People chips: aesthetic boxes with X buttons */
     #peopleList { 
       display: flex; 
@@ -264,6 +269,80 @@
       opacity: 1;
     }
 
+    /* Product Cards */
+    .product-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 4px var(--shadow-soft);
+      transition: all 0.2s ease;
+    }
+    .product-card:hover {
+      box-shadow: 0 2px 8px var(--shadow-soft);
+      border-color: var(--accent);
+    }
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .product-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex: 1;
+    }
+    .product-name {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--fg);
+      flex: 1;
+      text-align: left;
+    }
+    .product-qty {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    .product-qty label {
+      font-weight: 500;
+      color: var(--fg);
+      font-size: 0.95rem;
+    }
+    .product-price {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      min-width: 80px;
+      text-align: right;
+    }
+    .assign-button {
+      flex-shrink: 0;
+      padding: 0.625rem 1rem;
+      font-size: 0.95rem;
+    }
+    .product-remove {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
     /* Mobile UX improvements */
     @media (max-width: 640px) {
       /* Touch-friendly targets */
@@ -280,9 +359,40 @@
       }
       .row { gap: 0.75rem; }
 
-      /* Product table horizontal scroll with momentum */
-      #productsTableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      #productsTableWrap table { min-width: 560px; }
+      /* Product cards mobile adjustments */
+      .product-card {
+        padding: 1rem;
+      }
+      .product-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .product-main {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .product-name {
+        font-size: 1.05rem;
+        flex: 1 1 100%;
+      }
+      .product-qty {
+        order: 1;
+      }
+      .product-price {
+        order: 2;
+        text-align: left;
+        font-size: 1.1rem;
+      }
+      .assign-button {
+        order: 3;
+        flex: 1 1 100%;
+        margin-top: 0.5rem;
+      }
+      .product-remove {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+      }
     }
   </style>
 </head>
@@ -334,6 +444,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

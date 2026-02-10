@@ -60,3 +60,69 @@ button:active {
   transform: translateY(0);
   box-shadow: 0 1px 4px var(--shadow-soft);
 }
+.assign-button {
+  background-color: var(--accent);
+}
+
+.assign-button:hover {
+  background-color: var(--accent-hover);
+}
+
+.people-menu {
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  margin: 10px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+.menu-option {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+  transition: background 0.15s ease;
+}
+
+.menu-option:hover {
+  background-color: var(--bg);
+}
+
+.menu-option:last-child {
+  border-bottom: none;
+}
+
+.assigned-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+  min-height: 30px;
+}
+
+.person-tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--accent);
+  color: var(--bg);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.remove-person {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.remove-person:hover {
+  opacity: 1;
+}

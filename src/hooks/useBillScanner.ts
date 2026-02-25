@@ -6,7 +6,7 @@ interface ScanResult {
   items: BillItem[];
 }
 
-export async function scanBill(imageBase64: string): Promise<ScanResult> {
+export async function scanBill(imageBase64: string, mediaType: string): Promise<ScanResult> {
   if (!WORKER_URL) {
     throw new Error('VITE_WORKER_URL no está configurado. Revisa tu archivo .env');
   }
@@ -14,7 +14,7 @@ export async function scanBill(imageBase64: string): Promise<ScanResult> {
   const response = await fetch(`${WORKER_URL}/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: imageBase64 }),
+    body: JSON.stringify({ image: imageBase64, mediaType }),
   });
 
   if (!response.ok) {
@@ -37,14 +37,15 @@ export async function scanBill(imageBase64: string): Promise<ScanResult> {
   return { items };
 }
 
-export function fileToBase64(file: File): Promise<string> {
+export function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Remove data:image/...;base64, prefix
-      const base64 = result.split(',')[1];
-      resolve(base64);
+      // result = "data:image/jpeg;base64,/9j/4AAQ..."
+      const [prefix, base64] = result.split(',');
+      const mediaType = prefix.replace('data:', '').replace(';base64', '');
+      resolve({ base64, mediaType });
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);

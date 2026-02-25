@@ -47,9 +47,9 @@ export default function Step1Entry() {
     setIsLoading(true);
     setError(null);
     try {
-      const base64 = await fileToBase64(selectedFile);
+      const { base64, mediaType } = await fileToBase64(selectedFile);
       dispatch({ type: 'SET_ORIGINAL_IMAGE', image: base64 });
-      const { items } = await scanBill(base64);
+      const { items } = await scanBill(base64, mediaType);
       dispatch({ type: 'SET_ITEMS', items });
       dispatch({ type: 'SET_ENTRY_MODE', mode: 'scan' });
       haptic();

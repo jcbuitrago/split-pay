@@ -46,10 +46,13 @@ export default {
       return corsResponse({ error: 'JSON inválido' }, 400, env);
     }
 
-    const { image } = body;
+    const { image, mediaType } = body;
     if (!image || typeof image !== 'string') {
       return corsResponse({ error: 'Se requiere el campo "image" en base64' }, 400, env);
     }
+
+    const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const resolvedMediaType = ALLOWED_MEDIA_TYPES.includes(mediaType) ? mediaType : 'image/jpeg';
 
     // Llamar a Anthropic Vision
     const prompt = `Extrae todos los ítems de esta factura de restaurante.
@@ -67,7 +70,7 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-haiku-4-5',
           max_tokens: 1024,
           messages: [
             {
@@ -77,7 +80,7 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
                   type: 'image',
                   source: {
                     type: 'base64',
-                    media_type: 'image/jpeg',
+                    media_type: resolvedMediaType,
                     data: image,
                   },
                 },

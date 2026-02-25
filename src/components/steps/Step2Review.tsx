@@ -41,6 +41,15 @@ export default function Step2Review() {
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         <h2 className="text-lg font-bold text-gray-900">Ítems de la factura</h2>
 
+        {state.entryMode === 'scan' && state.items.length > 0 && !editingItem && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 flex items-start gap-2">
+            <span className="text-amber-500 shrink-0 mt-0.5">✏️</span>
+            <p className="text-xs text-amber-800">
+              Revisa los ítems detectados. Toca <strong>✏️</strong> para corregir nombre, cantidad o precio.
+            </p>
+          </div>
+        )}
+
         {state.items.length === 0 && !showForm && (
           <p className="text-gray-400 text-sm text-center py-6">Sin ítems aún. Agrega el primero.</p>
         )}
@@ -63,14 +72,14 @@ export default function Step2Review() {
                 </div>
                 <button
                   onClick={() => setEditingItem(item)}
-                  className="p-1.5 text-gray-400 hover:text-indigo-600 active:text-indigo-700"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 active:bg-indigo-100 text-base shrink-0"
                   aria-label="Editar"
                 >
                   ✏️
                 </button>
                 <button
                   onClick={() => handleRemove(item.id)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 active:text-red-600"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 active:bg-red-100 text-base shrink-0"
                   aria-label="Eliminar"
                 >
                   🗑️

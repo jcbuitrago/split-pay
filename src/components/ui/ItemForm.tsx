@@ -20,17 +20,24 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
     }
   }, [initial]);
 
-  // Valores numéricos derivados del string — nunca bloquean la escritura
-  const quantity = Math.max(1, parseInt(qtyStr) || 0);
-  const price = parseInt(priceStr.replace(/\D/g, ''), 10) || 0;
+  const qtyNum = parseInt(qtyStr) || 0;
+  const price  = parseInt(priceStr.replace(/\D/g, ''), 10) || 0;
+
+  function increment() {
+    setQtyStr(String(qtyNum + 1));
+  }
+
+  function decrement() {
+    if (qtyNum > 1) setQtyStr(String(qtyNum - 1));
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || price <= 0 || quantity < 1) return;
-    onSave({ name: name.trim(), quantity, price });
+    if (!name.trim() || price <= 0 || qtyNum < 1) return;
+    onSave({ name: name.trim(), quantity: qtyNum, price });
   }
 
-  const isValid = name.trim().length > 0 && price > 0 && (parseInt(qtyStr) || 0) >= 1;
+  const isValid = name.trim().length > 0 && price > 0 && qtyNum >= 1;
 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
@@ -49,16 +56,33 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={qtyStr}
-            onChange={e => setQtyStr(e.target.value.replace(/\D/g, ''))}
-            onBlur={() => setQtyStr(String(Math.max(1, parseInt(qtyStr) || 1)))}
-            placeholder="1"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+            <button
+              type="button"
+              onClick={decrement}
+              disabled={qtyNum <= 1}
+              className="w-10 h-10 flex items-center justify-center text-gray-500 bg-gray-50 active:bg-gray-200 disabled:opacity-30 text-lg font-bold shrink-0"
+            >
+              −
+            </button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={qtyStr}
+              onChange={e => setQtyStr(e.target.value.replace(/\D/g, ''))}
+              onBlur={() => { if (qtyStr === '' || qtyNum < 1) setQtyStr('1'); }}
+              className="flex-1 text-center py-2 text-sm font-semibold focus:outline-none min-w-0"
+            />
+            <button
+              type="button"
+              onClick={increment}
+              className="w-10 h-10 flex items-center justify-center text-gray-500 bg-gray-50 active:bg-gray-200 text-lg font-bold shrink-0"
+            >
+              +
+            </button>
+          </div>
         </div>
+
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">Precio unitario ($)</label>
           <input

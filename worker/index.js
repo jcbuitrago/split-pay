@@ -18,18 +18,22 @@ export default {
   async fetch(request, env) {
     // Solo aceptar POST /scan
     const url = new URL(request.url);
+    const origin = request.headers.get('Origin') ?? '*';
     if (request.method === 'OPTIONS') {
-      return corsResponse(null, 204, env);
+      return corsResponse(null, 204, origin);
     }
     if (request.method !== 'POST' || url.pathname !== '/scan') {
-      return corsResponse({ error: 'Not found' }, 404, env);
+      return corsResponse({ error: 'Not found' }, 404, origin);
     }
 
-    // Validar origen
-    const origin = request.headers.get('Origin') ?? '';
-    const allowedOrigin = env.ALLOWED_ORIGIN ?? '';
-    if (allowedOrigin && origin !== allowedOrigin) {
-      return corsResponse({ error: 'Origen no permitido' }, 403, env);
+    // Validar origen (ALLOWED_ORIGIN puede ser lista separada por comas)
+    const allowedOrigins = (env.ALLOWED_ORIGIN ?? '')
+      .split(',')
+      .map(o => o.trim())
+      .filter(Boolean);
+    const originAllowed = allowedOrigins.length === 0 || allowedOrigins.includes(origin);
+    if (!originAllowed) {
+      return corsResponse({ error: 'Origen no permitido' }, 403, origin);
     }
 
     // Rate limiting por IP (en memoria)
@@ -91,14 +95,14 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
         }),
       });
     } catch (err) {
-      return corsResponse({ error: 'Error al conectar con el servicio de OCR' }, 502, env);
+      return corsResponse({ error: 'Error al conectar con el servicio de OCR' }, 502, origin);
     }
 
     if (!anthropicResponse.ok) {
       const errData = await anthropicResponse.json().catch(() => ({}));
       const detail = errData?.error?.message ?? anthropicResponse.statusText;
       console.error('Anthropic error:', anthropicResponse.status, detail);
-      return corsResponse({ error: `Error del servicio de OCR: ${detail}` }, 502, env);
+      return corsResponse({ error: `Error del servicio de OCR: ${detail}` }, 502, origin);
     }
 
     const aiData = await anthropicResponse.json();
@@ -112,14 +116,14 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
       if (!match) throw new Error('No se encontró JSON en la respuesta');
       parsed = JSON.parse(match[0]);
     } catch {
-      return corsResponse({ error: 'No se pudo interpretar la factura. Intenta con una foto más clara.' }, 422, env);
+      return corsResponse({ error: 'No se pudo interpretar la factura. Intenta con una foto más clara.' }, 422, origin);
     }
 
     if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
-      return corsResponse({ error: 'No se encontraron ítems en la factura.' }, 422, env);
+      return corsResponse({ error: 'No se encontraron ítems en la factura.' }, 422, origin);
     }
 
-    return corsResponse({ items: parsed.items, currency: parsed.currency ?? 'COP' }, 200, env);
+    return corsResponse({ items: parsed.items, currency: parsed.currency ?? 'COP' }, 200, origin);
   },
 };
 

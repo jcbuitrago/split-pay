@@ -1,0 +1,17 @@
+name = "splitbill-worker"
+main = "index.js"
+compatibility_date = "2024-11-01"
+
+# El Worker se despliega en la ruta /scan de tu subdominio de Cloudflare Workers
+# URL resultante: https://splitbill-worker.TU_USUARIO.workers.dev
+
+
+# ─────────────────────────────────────────────────────────────────
+# SECRETOS — no van en este archivo, se configuran con la CLI:
+#
+#   npx wrangler secret put ANTHROPIC_API_KEY
+#   npx wrangler secret put ALLOWED_ORIGIN
+#
+# ALLOWED_ORIGIN debe ser la URL exacta de tu frontend, por ejemplo:
+#   https://splitbill.vercel.app
+# ─────────────────────────────────────────────────────────────────

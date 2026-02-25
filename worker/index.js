@@ -95,9 +95,10 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
     }
 
     if (!anthropicResponse.ok) {
-      const errText = await anthropicResponse.text();
-      console.error('Anthropic error:', errText);
-      return corsResponse({ error: 'Error del servicio de OCR' }, 502, env);
+      const errData = await anthropicResponse.json().catch(() => ({}));
+      const detail = errData?.error?.message ?? anthropicResponse.statusText;
+      console.error('Anthropic error:', anthropicResponse.status, detail);
+      return corsResponse({ error: `Error del servicio de OCR: ${detail}` }, 502, env);
     }
 
     const aiData = await anthropicResponse.json();

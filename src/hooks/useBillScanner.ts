@@ -37,17 +37,41 @@ export async function scanBill(imageBase64: string, mediaType: string): Promise<
   return { items };
 }
 
+const MAX_DIMENSION = 1200;
+const JPEG_QUALITY  = 0.82;
+
 export function fileToBase64(file: File): Promise<{ base64: string; mediaType: string }> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // result = "data:image/jpeg;base64,/9j/4AAQ..."
-      const [prefix, base64] = result.split(',');
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      // Redimensionar si supera MAX_DIMENSION manteniendo aspecto
+      let { width, height } = img;
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+      const [prefix, base64] = dataUrl.split(',');
       const mediaType = prefix.replace('data:', '').replace(';base64', '');
       resolve({ base64, mediaType });
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+
+    img.onerror = reject;
+    img.src = objectUrl;
   });
 }

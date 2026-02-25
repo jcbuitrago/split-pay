@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#4F46E5"/>
+  <!-- Recibo -->
+  <rect x="144" y="96" width="224" height="288" rx="16" fill="white"/>
+  <!-- Líneas del recibo -->
+  <rect x="176" y="152" width="160" height="16" rx="8" fill="#4F46E5" opacity="0.3"/>
+  <rect x="176" y="192" width="120" height="14" rx="7" fill="#4F46E5" opacity="0.2"/>
+  <rect x="176" y="224" width="140" height="14" rx="7" fill="#4F46E5" opacity="0.2"/>
+  <rect x="176" y="256" width="100" height="14" rx="7" fill="#4F46E5" opacity="0.2"/>
+  <!-- Divisor -->
+  <rect x="176" y="290" width="160" height="2" rx="1" fill="#4F46E5" opacity="0.3"/>
+  <!-- Total -->
+  <rect x="176" y="310" width="80" height="18" rx="9" fill="#4F46E5" opacity="0.5"/>
+  <rect x="288" y="310" width="48" height="18" rx="9" fill="#4F46E5"/>
+  <!-- Símbolo de división (personas) -->
+  <circle cx="390" cy="380" r="52" fill="#818CF8"/>
+  <circle cx="374" cy="372" r="14" fill="white"/>
+  <circle cx="406" cy="372" r="14" fill="white"/>
+  <path d="M354 400 Q374 416 390 408 Q406 416 426 400" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

@@ -20,9 +20,10 @@ function StepContent() {
 }
 
 export default function App() {
+  const { state } = useBill();
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
-      <div className="w-full max-w-[430px] min-h-screen flex flex-col bg-gray-50">
+    <div className={`min-h-screen flex flex-col items-center bg-gray-50 dark:bg-gray-900 ${state.darkMode ? 'dark' : ''}`}>
+      <div className="w-full max-w-[430px] min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Stepper />
         <main className="flex-1 flex flex-col overflow-hidden">
           <StepContent />

@@ -18,28 +18,31 @@ export default {
   async fetch(request, env) {
     // Solo aceptar POST /scan
     const url = new URL(request.url);
-    const origin = request.headers.get('Origin') ?? '*';
-    if (request.method === 'OPTIONS') {
-      return corsResponse(null, 204, origin);
-    }
-    if (request.method !== 'POST' || url.pathname !== '/scan') {
-      return corsResponse({ error: 'Not found' }, 404, origin);
-    }
+    const requestOrigin = request.headers.get('Origin') ?? '';
 
     // Validar origen (ALLOWED_ORIGIN puede ser lista separada por comas)
     const allowedOrigins = (env.ALLOWED_ORIGIN ?? '')
       .split(',')
       .map(o => o.trim())
       .filter(Boolean);
-    const originAllowed = allowedOrigins.length === 0 || allowedOrigins.includes(origin);
-    if (!originAllowed) {
-      return corsResponse({ error: 'Origen no permitido' }, 403, origin);
+    // Usar el origen de la lista (nunca reflejar el origen del request)
+    const allowedOrigin = allowedOrigins.find(o => o === requestOrigin) ?? allowedOrigins[0] ?? '';
+
+    if (request.method === 'OPTIONS') {
+      return corsResponse(null, 204, allowedOrigin);
+    }
+    if (request.method !== 'POST' || url.pathname !== '/scan') {
+      return corsResponse({ error: 'Not found' }, 404, allowedOrigin);
+    }
+
+    if (!allowedOrigin || (allowedOrigins.length > 0 && !allowedOrigins.includes(requestOrigin))) {
+      return corsResponse({ error: 'Origen no permitido' }, 403, allowedOrigin);
     }
 
     // Rate limiting por IP (en memoria)
     const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
     if (isRateLimited(ip)) {
-      return corsResponse({ error: 'Demasiadas solicitudes. Intenta en unos minutos.' }, 429, origin);
+      return corsResponse({ error: 'Demasiadas solicitudes. Intenta en unos minutos.' }, 429, allowedOrigin);
     }
 
     // Parsear body
@@ -47,12 +50,18 @@ export default {
     try {
       body = await request.json();
     } catch {
-      return corsResponse({ error: 'JSON inválido' }, 400, origin);
+      return corsResponse({ error: 'JSON inválido' }, 400, allowedOrigin);
     }
 
     const { image, mediaType } = body;
     if (!image || typeof image !== 'string') {
-      return corsResponse({ error: 'Se requiere el campo "image" en base64' }, 400, origin);
+      return corsResponse({ error: 'Se requiere el campo "image" en base64' }, 400, allowedOrigin);
+    }
+
+    // Límite de tamaño: ~8MB base64 ≈ 6MB imagen comprimida
+    const MAX_IMAGE_B64 = 8 * 1024 * 1024;
+    if (image.length > MAX_IMAGE_B64) {
+      return corsResponse({ error: 'La imagen es demasiado grande. Máximo 6MB.' }, 413, allowedOrigin);
     }
 
     const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -65,9 +74,12 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional:
 Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
 
     let anthropicResponse;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25_000);
     try {
       anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': env.ANTHROPIC_API_KEY,
@@ -95,35 +107,55 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
         }),
       });
     } catch (err) {
-      return corsResponse({ error: 'Error al conectar con el servicio de OCR' }, 502, origin);
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        return corsResponse({ error: 'El servicio tardó demasiado. Intenta de nuevo.' }, 504, allowedOrigin);
+      }
+      return corsResponse({ error: 'Error al conectar con el servicio de OCR' }, 502, allowedOrigin);
     }
+    clearTimeout(timeout);
 
     if (!anthropicResponse.ok) {
       const errData = await anthropicResponse.json().catch(() => ({}));
       const detail = errData?.error?.message ?? anthropicResponse.statusText;
       console.error('Anthropic error:', anthropicResponse.status, detail);
-      return corsResponse({ error: `Error del servicio de OCR: ${detail}` }, 502, origin);
+      return corsResponse({ error: 'No se pudo procesar la factura. Intenta de nuevo.' }, 502, allowedOrigin);
     }
 
     const aiData = await anthropicResponse.json();
     const rawText = aiData?.content?.[0]?.text ?? '';
 
-    // Parsear JSON de la respuesta
+    // Parsear JSON de la respuesta (non-greedy para evitar extraer bloques incorrectos)
     let parsed;
     try {
-      // Extraer JSON en caso de que haya texto extra
-      const match = rawText.match(/\{[\s\S]*\}/);
+      const match = rawText.match(/\{[\s\S]*?\}(?=\s*$)/) ?? rawText.match(/\{[\s\S]*\}/);
       if (!match) throw new Error('No se encontró JSON en la respuesta');
       parsed = JSON.parse(match[0]);
     } catch {
-      return corsResponse({ error: 'No se pudo interpretar la factura. Intenta con una foto más clara.' }, 422, origin);
+      return corsResponse({ error: 'No se pudo interpretar la factura. Intenta con una foto más clara.' }, 422, allowedOrigin);
     }
 
     if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
-      return corsResponse({ error: 'No se encontraron ítems en la factura.' }, 422, origin);
+      return corsResponse({ error: 'No se encontraron ítems en la factura.' }, 422, allowedOrigin);
     }
 
-    return corsResponse({ items: parsed.items, currency: parsed.currency ?? 'COP' }, 200, origin);
+    // Sanitizar y validar cada ítem
+    const validItems = parsed.items
+      .filter(item => item && typeof item === 'object')
+      .map(item => ({
+        name: (typeof item.name === 'string' ? item.name.trim().slice(0, 200) : 'Ítem') || 'Ítem',
+        price: (typeof item.price === 'number' && isFinite(item.price) && item.price >= 0)
+          ? Math.round(item.price) : 0,
+        quantity: (typeof item.quantity === 'number' && item.quantity >= 1)
+          ? Math.min(Math.round(item.quantity), 99) : 1,
+      }))
+      .filter(item => item.price > 0);
+
+    if (validItems.length === 0) {
+      return corsResponse({ error: 'No se encontraron ítems válidos en la factura.' }, 422, allowedOrigin);
+    }
+
+    return corsResponse({ items: validItems, currency: parsed.currency ?? 'COP' }, 200, allowedOrigin);
   },
 };
 

@@ -16,6 +16,7 @@ export interface BillState {
   step: 1 | 2 | 3 | 4 | 5 | 6;
   items: BillItem[];
   people: Person[];
+  darkMode: boolean;        // Default: true (tema nocturno)
   taxPercent: number;       // Default: 8 (IVA Colombia restaurantes)
   taxIncluded: boolean;     // Default: true (IVA ya incluido en precios del menú)
   tipPercent: number;       // Default: 10

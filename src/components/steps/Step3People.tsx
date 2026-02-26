@@ -42,8 +42,8 @@ export default function Step3People() {
   return (
     <div className="flex flex-col flex-1">
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900">¿Quiénes pagan?</h2>
-        <p className="text-sm text-gray-500 -mt-2">Agrega al menos 2 personas para continuar.</p>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">¿Quiénes pagan?</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2">Agrega al menos 2 personas para continuar.</p>
 
         <div className="flex gap-2">
           <input
@@ -53,7 +53,7 @@ export default function Step3People() {
             onChange={e => setInputName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Nombre de la persona"
-            className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             onClick={handleAdd}
@@ -65,7 +65,7 @@ export default function Step3People() {
         </div>
 
         {state.people.length === 0 && (
-          <p className="text-gray-400 text-sm text-center py-6">Sin personas aún.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-6">Sin personas aún.</p>
         )}
 
         <div className="flex flex-wrap gap-2">
@@ -88,10 +88,10 @@ export default function Step3People() {
         </div>
       </div>
 
-      <div className="flex gap-3 px-4 py-4 border-t border-gray-100 bg-white">
+      <div className="flex gap-3 px-4 py-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
         <button
           onClick={prevStep}
-          className="flex-1 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 active:bg-gray-100"
+          className="flex-1 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-medium text-gray-700 dark:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700"
         >
           ← Atrás
         </button>

@@ -5,6 +5,7 @@ const initialState: BillState = {
   step: 1,
   items: [],
   people: [],
+  darkMode: true,
   taxPercent: 8,
   taxIncluded: true,
   tipPercent: 10,
@@ -25,6 +26,7 @@ type BillAction =
   | { type: 'REMOVE_PERSON'; id: string }
   | { type: 'ASSIGN_PERSON'; itemId: string; personId: string }
   | { type: 'UNASSIGN_PERSON'; itemId: string; personId: string }
+  | { type: 'SET_DARK_MODE'; value: boolean }
   | { type: 'SET_TAX_PERCENT'; value: number }
   | { type: 'SET_TAX_INCLUDED'; value: boolean }
   | { type: 'SET_TIP_PERCENT'; value: number }
@@ -40,7 +42,12 @@ type BillAction =
 function billReducer(state: BillState, action: BillAction): BillState {
   switch (action.type) {
     case 'SET_STEP':
-      return { ...state, step: action.step };
+      return {
+        ...state,
+        step: action.step,
+        // Liberar la imagen al salir del step 1
+        originalImage: action.step > 1 ? undefined : state.originalImage,
+      };
 
     case 'ADD_ITEM':
       return { ...state, items: [...state.items, action.item] };
@@ -89,6 +96,9 @@ function billReducer(state: BillState, action: BillAction): BillState {
             : item
         ),
       };
+
+    case 'SET_DARK_MODE':
+      return { ...state, darkMode: action.value };
 
     case 'SET_TAX_PERCENT':
       return { ...state, taxPercent: action.value };

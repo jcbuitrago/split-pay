@@ -20,6 +20,10 @@ function roundUpTo100(amount: number): number {
   return Math.ceil(amount / 100) * 100;
 }
 
+export function roundToNearest100(amount: number): number {
+  return Math.round(amount / 100) * 100;
+}
+
 /**
  * Propina calculada sobre el precio SIN IVA, redondeada al $100 superior.
  * - taxIncluded=true:  pre-IVA = subtotal / (1 + taxPercent/100)
@@ -62,9 +66,9 @@ export function calculateSplit(state: BillState): PersonSplit[] {
     const proportion = subtotal > 0 ? personSubtotal / subtotal : 0;
     const personTax = calculateTax(personSubtotal, state.taxPercent, state.taxIncluded);
     const personTip = tip * proportion;
-    const personTotal = state.taxIncluded
+    const personTotal = roundToNearest100(state.taxIncluded
       ? personSubtotal + personTip          // IVA ya en subtotal
-      : personSubtotal + personTax + personTip; // IVA se suma aparte
+      : personSubtotal + personTax + personTip); // IVA se suma aparte
     return {
       person,
       subtotal: personSubtotal,

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useBill } from './context/BillContext';
 import Stepper from './components/ui/Stepper';
 import Step1Entry from './components/steps/Step1Entry';
@@ -21,8 +22,13 @@ function StepContent() {
 
 export default function App() {
   const { state } = useBill();
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', state.darkMode);
+  }, [state.darkMode]);
+
   return (
-    <div className={`min-h-screen flex flex-col items-center bg-gray-50 dark:bg-gray-900 ${state.darkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen flex flex-col items-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-[430px] min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Stepper />
         <main className="flex-1 flex flex-col overflow-hidden">

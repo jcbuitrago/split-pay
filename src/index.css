@@ -5,6 +5,11 @@
 @layer base {
   html, body, #root {
     height: 100%;
+    background-color: #F9FAFB; /* gray-50 — coincide con el fondo claro de la app */
+  }
+
+  html.dark, html.dark body, html.dark #root {
+    background-color: #111827; /* gray-900 — coincide con el fondo oscuro de la app */
   }
 
   * {

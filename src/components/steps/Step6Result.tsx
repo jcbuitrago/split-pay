@@ -4,7 +4,7 @@ import { useBillSplit } from '../../hooks/useBillSplit';
 import { formatCOP } from '../../utils/formatCurrency';
 import { PersonSplit } from '../../types/bill';
 
-function PersonCard({ split }: { split: PersonSplit }) {
+function PersonCard({ split, taxIncluded }: { split: PersonSplit; taxIncluded: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,13 +38,15 @@ function PersonCard({ split }: { split: PersonSplit }) {
           ))}
           <div className="h-px bg-gray-100 my-1" />
           <div className="flex justify-between text-xs text-gray-400">
-            <span>Subtotal</span>
+            <span>{taxIncluded ? 'Subtotal (IVA incl.)' : 'Subtotal'}</span>
             <span>{formatCOP(split.subtotal)}</span>
           </div>
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>IVA</span>
-            <span>{formatCOP(split.tax)}</span>
-          </div>
+          {!taxIncluded && (
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>IVA</span>
+              <span>{formatCOP(split.tax)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-xs text-gray-400">
             <span>Propina</span>
             <span>{formatCOP(split.tip)}</span>
@@ -69,8 +71,8 @@ export default function Step6Result() {
       });
     });
     lines.push('');
-    lines.push(`Subtotal: ${formatCOP(subtotal)}`);
-    lines.push(`IVA: ${formatCOP(tax)}`);
+    lines.push(`Subtotal${state.taxIncluded ? ' (IVA incl.)' : ''}: ${formatCOP(subtotal)}`);
+    if (!state.taxIncluded) lines.push(`IVA: ${formatCOP(tax)}`);
     lines.push(`Propina: ${formatCOP(tip)}`);
     lines.push(`*Total: ${formatCOP(total)}*`);
     if (state.tipIsVoluntary) lines.push('_(La propina es voluntaria — Ley colombiana)_');
@@ -108,8 +110,8 @@ export default function Step6Result() {
         <p className="text-sm text-indigo-200">Total de la cuenta</p>
         <p className="text-4xl font-extrabold mt-1">{formatCOP(total)}</p>
         <div className="flex gap-4 mt-2 text-xs text-indigo-200">
-          <span>Sub: {formatCOP(subtotal)}</span>
-          <span>IVA: {formatCOP(tax)}</span>
+          <span>{state.taxIncluded ? 'Sub (IVA incl.)' : 'Sub'}: {formatCOP(subtotal)}</span>
+          {!state.taxIncluded && <span>IVA: {formatCOP(tax)}</span>}
           <span>Propina: {formatCOP(tip)}</span>
         </div>
       </div>
@@ -118,7 +120,7 @@ export default function Step6Result() {
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Por persona</h2>
         {splits.map(split => (
-          <PersonCard key={split.person.id} split={split} />
+          <PersonCard key={split.person.id} split={split} taxIncluded={state.taxIncluded} />
         ))}
       </div>
 

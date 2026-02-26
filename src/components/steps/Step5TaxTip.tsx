@@ -6,9 +6,9 @@ export default function Step5TaxTip() {
   const { state, dispatch, nextStep, prevStep } = useBill();
 
   const subtotal = calculateSubtotal(state.items);
-  const tax = calculateTax(subtotal, state.taxPercent);
+  const tax = calculateTax(subtotal, state.taxPercent, state.taxIncluded);
   const tip = calculateTip(subtotal, state);
-  const total = subtotal + tax + tip;
+  const total = state.taxIncluded ? subtotal + tip : subtotal + tax + tip;
 
   function handleTaxChange(val: number) {
     dispatch({ type: 'SET_TAX_PERCENT', value: Math.min(100, Math.max(0, val)) });
@@ -34,6 +34,31 @@ export default function Step5TaxTip() {
             <span className="font-semibold text-gray-900">IVA</span>
             <span className="text-indigo-600 font-bold">{state.taxPercent}%</span>
           </div>
+
+          {/* Toggle: ¿IVA incluido en precios? */}
+          <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-800">¿Precios con IVA incluido?</span>
+              <span className="text-xs text-gray-400 mt-0.5">
+                {state.taxIncluded ? 'El IVA ya está en los precios del menú' : 'El IVA se sumará a los precios'}
+              </span>
+            </div>
+            <div className="flex bg-gray-200 rounded-lg p-0.5 shrink-0 ml-3">
+              <button
+                onClick={() => dispatch({ type: 'SET_TAX_INCLUDED', value: true })}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${state.taxIncluded ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}
+              >
+                Sí
+              </button>
+              <button
+                onClick={() => dispatch({ type: 'SET_TAX_INCLUDED', value: false })}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${!state.taxIncluded ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
           <input
             type="range"
             min={0}
@@ -135,15 +160,22 @@ export default function Step5TaxTip() {
         <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex flex-col gap-2">
           <h3 className="font-semibold text-indigo-900 text-sm mb-1">Resumen</h3>
           <div className="flex justify-between text-sm text-gray-700">
-            <span>Subtotal</span>
+            <span>{state.taxIncluded ? 'Subtotal (IVA incl.)' : 'Subtotal'}</span>
             <span>{formatCOP(subtotal)}</span>
           </div>
+          {state.taxIncluded ? (
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>↳ IVA incluido ({state.taxPercent}%)</span>
+              <span>{formatCOP(tax)}</span>
+            </div>
+          ) : (
+            <div className="flex justify-between text-sm text-gray-700">
+              <span>IVA ({state.taxPercent}%)</span>
+              <span>{formatCOP(tax)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm text-gray-700">
-            <span>IVA ({state.taxPercent}%)</span>
-            <span>{formatCOP(tax)}</span>
-          </div>
-          <div className="flex justify-between text-sm text-gray-700">
-            <span>Propina {state.tipType === 'percent' ? `(${state.tipPercent}%)` : '(fijo)'}</span>
+            <span>Propina {state.tipType === 'percent' ? `(${state.tipPercent}% s/IVA, redondeada)` : '(fijo)'}</span>
             <span>{formatCOP(tip)}</span>
           </div>
           <div className="h-px bg-indigo-200 my-1" />

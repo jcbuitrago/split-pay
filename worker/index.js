@@ -39,7 +39,7 @@ export default {
     // Rate limiting por IP (en memoria)
     const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
     if (isRateLimited(ip)) {
-      return corsResponse({ error: 'Demasiadas solicitudes. Intenta en unos minutos.' }, 429, env);
+      return corsResponse({ error: 'Demasiadas solicitudes. Intenta en unos minutos.' }, 429, origin);
     }
 
     // Parsear body
@@ -47,12 +47,12 @@ export default {
     try {
       body = await request.json();
     } catch {
-      return corsResponse({ error: 'JSON inválido' }, 400, env);
+      return corsResponse({ error: 'JSON inválido' }, 400, origin);
     }
 
     const { image, mediaType } = body;
     if (!image || typeof image !== 'string') {
-      return corsResponse({ error: 'Se requiere el campo "image" en base64' }, 400, env);
+      return corsResponse({ error: 'Se requiere el campo "image" en base64' }, 400, origin);
     }
 
     const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -127,11 +127,10 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
   },
 };
 
-function corsResponse(body, status, env) {
-  const allowedOrigin = env?.ALLOWED_ORIGIN ?? '*';
+function corsResponse(body, status, origin) {
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };

@@ -6,6 +6,7 @@ const initialState: BillState = {
   items: [],
   people: [],
   taxPercent: 8,
+  taxIncluded: true,
   tipPercent: 10,
   tipAmount: 0,
   tipType: 'percent',
@@ -25,6 +26,7 @@ type BillAction =
   | { type: 'ASSIGN_PERSON'; itemId: string; personId: string }
   | { type: 'UNASSIGN_PERSON'; itemId: string; personId: string }
   | { type: 'SET_TAX_PERCENT'; value: number }
+  | { type: 'SET_TAX_INCLUDED'; value: boolean }
   | { type: 'SET_TIP_PERCENT'; value: number }
   | { type: 'SET_TIP_AMOUNT'; value: number }
   | { type: 'SET_TIP_TYPE'; value: 'percent' | 'fixed' }
@@ -90,6 +92,9 @@ function billReducer(state: BillState, action: BillAction): BillState {
 
     case 'SET_TAX_PERCENT':
       return { ...state, taxPercent: action.value };
+
+    case 'SET_TAX_INCLUDED':
+      return { ...state, taxIncluded: action.value };
 
     case 'SET_TIP_PERCENT':
       return { ...state, tipPercent: action.value };

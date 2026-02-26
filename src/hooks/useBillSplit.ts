@@ -14,9 +14,11 @@ export function useBillSplit(): BillSummary {
   const { state } = useBill();
 
   const subtotal = calculateSubtotal(state.items);
-  const tax = calculateTax(subtotal, state.taxPercent);
+  const tax = calculateTax(subtotal, state.taxPercent, state.taxIncluded);
   const tip = calculateTip(subtotal, state);
-  const total = subtotal + tax + tip;
+  const total = state.taxIncluded
+    ? subtotal + tip          // IVA ya incluido en precios
+    : subtotal + tax + tip;   // IVA se agrega al subtotal
   const splits = calculateSplit(state);
 
   return { subtotal, tax, tip, total, splits };

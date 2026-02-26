@@ -17,6 +17,7 @@ export interface BillState {
   items: BillItem[];
   people: Person[];
   taxPercent: number;       // Default: 8 (IVA Colombia restaurantes)
+  taxIncluded: boolean;     // Default: true (IVA ya incluido en precios del menú)
   tipPercent: number;       // Default: 10
   tipAmount: number;        // Para propina fija, default: 0
   tipType: 'percent' | 'fixed';

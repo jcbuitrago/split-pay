@@ -54,7 +54,7 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
       </div>
 
       <div className="flex gap-3">
-        <div className="flex-1">
+        <div className="w-32 shrink-0">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad</label>
           <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 bg-white dark:bg-gray-700">
             <button
@@ -83,7 +83,7 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
           </div>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Precio unitario ($)</label>
           <input
             type="text"

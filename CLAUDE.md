@@ -10,6 +10,9 @@ importante que tomes.
 ## Stack completo
 - Frontend: React + Vite + TypeScript
 - Estilos: Tailwind CSS
+- Animaciones: framer-motion (transiciones entre pasos, AnimatePresence, whileTap)
+- Drag & drop: react-dropzone (Step1Entry)
+- Avatares: @dicebear/core + @dicebear/collection (generación local, sin API externa)
 - PWA: vite-plugin-pwa
 - Backend/Proxy: Cloudflare Worker (para proteger la API key)
 - OCR: Claude Vision API (claude-haiku-4-5) via el Worker
@@ -23,20 +26,23 @@ El Worker valida el origen, añade la API key y llama a Anthropic.
 src/
   components/
     steps/
-      Step1Entry.tsx      # Elegir: escanear o ingresar manual
+      Step1Entry.tsx      # Drag & drop zona (react-dropzone) + cámara + skeleton loader
       Step2Review.tsx     # Lista de ítems editable
-      Step3People.tsx     # Agregar personas (sin límite)
-      Step4Assign.tsx     # Asignar ítems a personas
+      Step3People.tsx     # Agregar personas — avatares funEmoji en grid 2 columnas
+      Step4Assign.tsx     # Asignar ítems — avatares circulares con toggle
       Step5TaxTip.tsx     # Impuestos y propina
-      Step6Result.tsx     # Resultado final
+      Step6Result.tsx     # Resultado final con avatares 48px por persona
     ui/
       ItemForm.tsx        # Formulario agregar/editar ítem
-      PersonChips.tsx     # Chips de personas con scroll horizontal
-      Stepper.tsx         # Barra de progreso de pasos
+      PersonChips.tsx     # Avatares circulares scrolleables (wraps PersonAvatar)
+      PersonAvatar.tsx    # Avatar DiceBear funEmoji, sm=32px / md=48px, borde dorado si asignado
+      Stepper.tsx         # Barra de progreso de pasos (oculta en Step6)
+      StepFooter.tsx      # Footer compartido: botones Atrás / Continuar
       ErrorMessage.tsx    # Componente de error con acción de fallback
   hooks/
     useBillScanner.ts     # Llama al Cloudflare Worker
     useBillSplit.ts       # Cálculos de división
+    useHaptic.ts          # Hook compartido para navigator.vibrate
   context/
     BillContext.tsx       # Estado global con useReducer
   types/
@@ -44,6 +50,7 @@ src/
   utils/
     calculations.ts
     formatCurrency.ts     # Formato COP: $1.500
+  theme.css               # ÚNICA fuente de paleta — editar aquí para cambiar colores
 
 ## Tipos principales (bill.ts):
 interface BillItem {
@@ -94,18 +101,24 @@ interface BillState {
 
 ### Step3People
 - Input nombre + botón "Agregar" (también funciona con Enter)
-- Mostrar personas como chips con su color asignado y botón X
-- Paleta de 20 colores distinctivos (no pasteles, que se vean bien en chips)
+- Cada persona se muestra como card en grid de 2 columnas:
+  - Avatar DiceBear funEmoji (36px, borde var(--color-rose))
+  - Nombre en blanco
+  - Botón ✕ para eliminar
+  - Fondo brand-rose al 50% de opacidad con borde brand-rose/60
 - Mínimo 2 personas para continuar
 - Sin límite máximo
 
 ### Step4Assign
-- Para cada ítem: nombre + precio + fila de chips de personas
-- Chips scrolleables horizontalmente
-- Chip activo = persona seleccionada para ese ítem
+- Para cada ítem: nombre + precio + fila de avatares circulares (PersonChips)
+- Avatares scrolleables horizontalmente, 32px cada uno
+- Avatar activo = borde var(--color-gold) + glow var(--glow-gold) + badge ✓ + nombre en dorado
+- Avatar inactivo = borde var(--color-bg) sutil + nombre en var(--color-muted)
+- Tapping en avatar hace scale 0.9 → 1 (framer-motion whileTap)
 - Si múltiples personas: precio se divide equitativamente
-- Ítems sin asignar: borde rojo y ícono de advertencia
+- Ítems sin asignar: borde rojo izquierdo (border-l-brand-rose) e ícono de advertencia
 - Contador arriba: "X de Y ítems asignados"
+- Barra sticky inferior: avatar 32px + subtotal por persona
 - No se puede continuar con ítems sin asignar
 
 ### Step5TaxTip
@@ -202,6 +215,54 @@ interface BillState {
 7. Animaciones suaves entre pasos (CSS transitions, no librerías pesadas)
 8. Sin localStorage ni cookies (estado solo en memoria, se pierde al cerrar)
 
+## Diseño Visual
+
+### Reglas generales de diseño
+- NUNCA tocar la lógica de OCR o división de cuenta — solo UI
+- NUNCA usar tipos `any` en TypeScript
+- Siempre preguntar antes de eliminar o renombrar archivos
+- App siempre en modo oscuro (class="dark" en <html>), sin toggle de tema
+
+### Sistema de temas (theme.css)
+**REGLA: Nunca escribir colores hex directamente en componentes.**
+Para cambiar la paleta completa, editar SOLO `src/theme.css` — bloque PALETTE.
+
+`src/theme.css` define tres capas:
+1. **Variables CSS hex** (`--color-bg`, `--color-gold`, etc.) → para inline styles en JS: `style={{ color: 'var(--color-gold)' }}`
+2. **Variables CSS RGB** (`--color-bg-rgb: 72 66 109`, etc.) → habilitan modificadores de opacidad de Tailwind como `bg-brand-rose/50`
+3. **Tokens derivados** (`--glow-gold`, `--glow-gold-ring`, `--gradient-header`, `--shadow-rgb`) → efectos reutilizables
+
+Los Tailwind tokens usan formato `rgb(var(--color-*-rgb) / <alpha-value>)` — así `/50`, `/70` etc. funcionan correctamente.
+
+### Paleta de colores
+| CSS var             | Tailwind token  | Hex (default) | Uso                                      |
+|---------------------|-----------------|---------------|------------------------------------------|
+| --color-bg          | brand.bg        | #48426D       | Fondo principal de la app                |
+| --color-surface     | brand.surface   | #312c51       | Cards y superficies grandes              |
+| --color-darkest     | brand.darkest   | #312051       | Elementos más oscuros (stepper, footer)  |
+| --color-gold        | brand.gold      | #F0C38E       | Acento dorado — botón primario, activo   |
+| --color-rose        | brand.rose      | #F1AA9B       | Acento rosa — secundario, Step1, rosa    |
+| --color-muted       | brand.muted     | #C4BDD8       | Texto secundario / placeholder           |
+
+Aliases legacy (mantienen compatibilidad con código existente):
+`--bg-primary`, `--bg-surface`, `--accent-gold`, `--accent-rose`, `--text-primary`, `--text-muted`
+
+### Tipografía
+- Títulos: Playfair Display (font-display) — cargada de Google Fonts
+- Cuerpo: DM Sans (font-body) — cargada de Google Fonts
+
+### Sistema de avatares (PersonAvatar.tsx)
+- Librería: @dicebear/core + @dicebear/collection — 100% local, sin llamadas externas
+- Estilo: `funEmoji`, seed = nombre de la persona (consistente y único)
+- Tamaños: sm=32px (chips de asignación y barra sticky), md=48px (cards de resultado)
+- Estado no asignado: borde `var(--color-bg)` sutil
+- Estado asignado: borde `var(--color-gold)` + boxShadow `var(--glow-gold)` + badge ✓ superpuesto
+- Interactivo (con onToggle): whileTap={{ scale: 0.9 }} + nombre debajo
+
+### Componentes de navegación compartidos
+- StepFooter.tsx: footer fijo con "← Atrás" (borde blanco) y "Continuar →" (dorado)
+- useHaptic.ts: hook que llama navigator.vibrate — importar en lugar de definir local
+
 ## Deploy
 - Frontend: Vercel (vite build → dist/). Script en package.json: "build": "vite build"
   - vercel.json en raíz configura framework vite y excluye worker/
@@ -218,7 +279,7 @@ interface BillState {
 - El Worker en producción está en: https://splitbill-worker.jcbuitrago99.workers.dev
 - El frontend en producción está en: https://split-pay-ochre.vercel.app
 
-## Estado del proyecto (al 2026-02-25)
+## Estado del proyecto (al 2026-03-09)
 - [x] Todo el flujo de 6 pasos implementado y funcional
 - [x] Cloudflare Worker desplegado y conectado
 - [x] Deploy en Vercel funcionando
@@ -228,6 +289,18 @@ interface BillState {
 - [x] Toggle IVA incluido/no incluido en Step5
 - [x] Propina calculada sobre base pre-IVA, redondeada al $100 superior
 - [x] Total y totales por persona redondeados al $100 más cercano
-- [x] Tema nocturno por defecto con toggle ☀️/🌙 en Step1
+- [x] Modo oscuro permanente (sin toggle, class="dark" fijo en <html>)
 - [x] Botón WhatsApp por persona en Step6 para compartir monto individual
 - [x] Seguridad básica del Worker: CORS seguro, límite de imagen, timeout, sanitización OCR
+- [x] Rediseño UI completo: paleta morada/dorada/rosa, Playfair Display + DM Sans
+- [x] framer-motion: transiciones AnimatePresence entre estados, stagger en Step6
+- [x] react-dropzone en Step1 con zona drag & drop animada y skeleton loader
+- [x] Avatares DiceBear funEmoji generados localmente por nombre de persona
+- [x] Step3: cards de persona en grid 2 col con avatar + nombre + botón eliminar
+- [x] Step4: PersonChips con avatares circulares — borde dorado al asignar + badge ✓
+- [x] Step4: barra sticky inferior con avatar + subtotal por persona
+- [x] Step6: avatar 48px con borde dorado en cada card de resultado
+- [x] StepFooter y useHaptic extraídos como componentes/hooks compartidos
+- [x] Sistema de temas centralizado: src/theme.css como única fuente de paleta
+- [x] Tailwind tokens con rgb(var()/alpha) — modificadores de opacidad /50, /70 funcionan con CSS vars
+- [x] Cero colores hex hardcodeados en componentes — todo vía CSS vars o tokens Tailwind

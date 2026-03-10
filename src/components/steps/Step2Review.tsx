@@ -4,15 +4,14 @@ import { BillItem } from '../../types/bill';
 import { formatCOP } from '../../utils/formatCurrency';
 import { calculateSubtotal } from '../../utils/calculations';
 import ItemForm from '../ui/ItemForm';
+import StepFooter from '../ui/StepFooter';
+import { useHaptic } from '../../hooks/useHaptic';
 
 export default function Step2Review() {
   const { state, dispatch, nextStep, prevStep } = useBill();
+  const haptic = useHaptic();
   const [showForm, setShowForm] = useState(state.items.length === 0);
   const [editingItem, setEditingItem] = useState<BillItem | null>(null);
-
-  function haptic() {
-    if ('vibrate' in navigator) navigator.vibrate(50);
-  }
 
   function handleAdd(data: Omit<BillItem, 'id' | 'assignedTo'>) {
     haptic();
@@ -37,21 +36,26 @@ export default function Step2Review() {
   const canContinue = state.items.length > 0 && state.items.every(i => i.price > 0);
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1" style={{ backgroundColor: 'var(--color-bg)' }}>
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Ítems de la factura</h2>
+        <h2 className="text-xl font-display font-bold" style={{ color: 'var(--color-white)' }}>Ítems de la factura</h2>
 
         {state.entryMode === 'scan' && state.items.length > 0 && !editingItem && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-3 py-2.5 flex items-start gap-2">
-            <span className="text-amber-500 shrink-0 mt-0.5">✏️</span>
-            <p className="text-xs text-amber-800 dark:text-amber-200">
-              Revisa los ítems detectados. Toca <strong>✏️</strong> para corregir nombre, cantidad o precio.
+          <div
+            className="rounded-2xl px-3 py-2.5 flex items-start gap-2 border"
+            style={{ backgroundColor: 'rgba(91,91,214,0.08)', borderColor: 'rgba(91,91,214,0.25)' }}
+          >
+            <span className="shrink-0 mt-0.5">✏️</span>
+            <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              Revisa los ítems detectados. Toca <strong style={{ color: 'var(--color-white)' }}>✏️</strong> para corregir nombre, cantidad o precio.
             </p>
           </div>
         )}
 
         {state.items.length === 0 && !showForm && (
-          <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-6">Sin ítems aún. Agrega el primero.</p>
+          <p className="text-sm text-center py-6" style={{ color: 'var(--color-muted)' }}>
+            Sin ítems aún. Agrega el primero.
+          </p>
         )}
 
         {state.items.map(item => (
@@ -63,23 +67,31 @@ export default function Step2Review() {
                 onCancel={() => setEditingItem(null)}
               />
             ) : (
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center gap-3">
+              <div
+                className="rounded-2xl p-4 flex items-center gap-3 border"
+                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'rgba(255,255,255,0.06)' }}
+              >
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 dark:text-white truncate">{item.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {item.quantity} × {formatCOP(item.price)} = <span className="font-medium text-gray-700 dark:text-gray-200">{formatCOP(item.price * item.quantity)}</span>
+                  <p className="font-semibold truncate" style={{ color: 'var(--color-white)' }}>{item.name}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                    {item.quantity} × {formatCOP(item.price)} ={' '}
+                    <span className="font-semibold" style={{ color: 'var(--color-gold)' }}>
+                      {formatCOP(item.price * item.quantity)}
+                    </span>
                   </p>
                 </div>
                 <button
                   onClick={() => setEditingItem(item)}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 active:bg-indigo-100 dark:active:bg-indigo-900 text-base shrink-0"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl text-base shrink-0 active:opacity-70"
+                  style={{ backgroundColor: 'rgba(91,91,214,0.15)' }}
                   aria-label="Editar"
                 >
                   ✏️
                 </button>
                 <button
                   onClick={() => handleRemove(item.id)}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 active:bg-red-100 dark:active:bg-red-900 text-base shrink-0"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl text-base shrink-0 active:opacity-70"
+                  style={{ backgroundColor: 'rgba(240,112,112,0.12)' }}
                   aria-label="Eliminar"
                 >
                   🗑️
@@ -99,7 +111,8 @@ export default function Step2Review() {
         {!showForm && !editingItem && (
           <button
             onClick={() => { setShowForm(true); setEditingItem(null); }}
-            className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-indigo-600 dark:text-indigo-400 font-medium text-sm active:bg-gray-50 dark:active:bg-gray-800"
+            className="w-full py-3 border-2 border-dashed rounded-2xl font-semibold text-sm active:opacity-70 transition-opacity"
+            style={{ borderColor: 'rgba(91,91,214,0.4)', color: 'var(--color-purple)' }}
           >
             + Agregar ítem
           </button>
@@ -107,29 +120,15 @@ export default function Step2Review() {
       </div>
 
       {state.items.length > 0 && (
-        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-2 bg-gray-50 dark:bg-gray-800">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-            <span className="font-bold text-gray-900 dark:text-white">{formatCOP(subtotal)}</span>
+        <div className="px-4 py-3 border-t" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'rgba(255,255,255,0.06)' }}>
+          <div className="flex justify-between items-center">
+            <span className="text-sm" style={{ color: 'var(--color-muted)' }}>Subtotal</span>
+            <span className="font-bold text-lg" style={{ color: 'var(--color-gold)' }}>{formatCOP(subtotal)}</span>
           </div>
         </div>
       )}
 
-      <div className="flex gap-3 px-4 py-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <button
-          onClick={prevStep}
-          className="flex-1 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-medium text-gray-700 dark:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700"
-        >
-          ← Atrás
-        </button>
-        <button
-          onClick={nextStep}
-          disabled={!canContinue}
-          className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold disabled:opacity-40 active:bg-indigo-700"
-        >
-          Continuar →
-        </button>
-      </div>
+      <StepFooter onBack={prevStep} onContinue={nextStep} continueDisabled={!canContinue} />
     </div>
   );
 }

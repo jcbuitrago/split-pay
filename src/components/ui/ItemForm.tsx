@@ -23,13 +23,8 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
   const qtyNum = parseInt(qtyStr) || 0;
   const price  = parseInt(priceStr.replace(/\D/g, ''), 10) || 0;
 
-  function increment() {
-    setQtyStr(String(qtyNum + 1));
-  }
-
-  function decrement() {
-    if (qtyNum > 1) setQtyStr(String(qtyNum - 1));
-  }
+  function increment() { setQtyStr(String(qtyNum + 1)); }
+  function decrement() { if (qtyNum > 1) setQtyStr(String(qtyNum - 1)); }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,29 +34,48 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
 
   const isValid = name.trim().length > 0 && price > 0 && qtyNum >= 1;
 
+  const inputStyle = {
+    backgroundColor: 'var(--color-bg)',
+    color: 'var(--color-white)',
+    borderColor: 'rgba(255,255,255,0.1)',
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-3">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl p-4 flex flex-col gap-3 border"
+      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'rgba(91,91,214,0.25)' }}
+    >
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del ítem</label>
+        <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>
+          Nombre del ítem
+        </label>
         <input
           autoFocus
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Ej: Bandeja paisa"
-          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none"
+          style={{ ...inputStyle, caretColor: 'var(--color-purple)' }}
         />
       </div>
 
       <div className="flex gap-3">
         <div className="w-32 shrink-0">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad</label>
-          <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 bg-white dark:bg-gray-700">
+          <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>
+            Cantidad
+          </label>
+          <div
+            className="flex items-center border rounded-xl overflow-hidden"
+            style={{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'var(--color-bg)' }}
+          >
             <button
               type="button"
               onClick={decrement}
               disabled={qtyNum <= 1}
-              className="w-10 h-10 flex items-center justify-center text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 disabled:opacity-30 text-lg font-bold shrink-0"
+              className="w-10 h-10 flex items-center justify-center text-lg font-bold shrink-0 disabled:opacity-30 active:opacity-60"
+              style={{ color: 'var(--color-muted)' }}
             >
               −
             </button>
@@ -71,12 +85,14 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
               value={qtyStr}
               onChange={e => setQtyStr(e.target.value.replace(/\D/g, ''))}
               onBlur={() => { if (qtyStr === '' || qtyNum < 1) setQtyStr('1'); }}
-              className="flex-1 text-center py-2 text-sm font-semibold focus:outline-none min-w-0 bg-transparent text-gray-900 dark:text-white"
+              className="flex-1 text-center py-2 text-sm font-semibold focus:outline-none min-w-0 bg-transparent"
+              style={{ color: 'var(--color-white)' }}
             />
             <button
               type="button"
               onClick={increment}
-              className="w-10 h-10 flex items-center justify-center text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 text-lg font-bold shrink-0"
+              className="w-10 h-10 flex items-center justify-center text-lg font-bold shrink-0 active:opacity-60"
+              style={{ color: 'var(--color-muted)' }}
             >
               +
             </button>
@@ -84,14 +100,17 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
         </div>
 
         <div className="flex-1 min-w-0">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Precio unitario ($)</label>
+          <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>
+            Precio unitario ($)
+          </label>
           <input
             type="text"
             inputMode="numeric"
             value={priceStr}
             onChange={e => setPriceStr(e.target.value.replace(/\D/g, ''))}
             placeholder="15000"
-            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none"
+            style={inputStyle}
           />
         </div>
       </div>
@@ -100,14 +119,16 @@ export default function ItemForm({ initial, onSave, onCancel }: ItemFormProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 active:bg-gray-100 dark:active:bg-gray-700"
+          className="flex-1 py-2.5 rounded-xl border text-sm font-semibold active:opacity-70"
+          style={{ borderColor: 'var(--color-muted-surface)', color: 'var(--color-muted)', backgroundColor: 'transparent' }}
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={!isValid}
-          className="flex-1 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-40 active:bg-indigo-700"
+          className="flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40 active:opacity-80"
+          style={{ backgroundColor: 'var(--color-purple)', color: '#ffffff' }}
         >
           {initial ? 'Guardar' : 'Agregar'}
         </button>

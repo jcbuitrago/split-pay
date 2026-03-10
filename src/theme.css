@@ -1,0 +1,55 @@
+/* ══════════════════════════════════════════════════════
+   theme.css — ÚNICA fuente de paleta de SplitBill
+   Para cambiar la paleta completa, edita solo el bloque
+   ── PALETTE ── abajo; el resto se actualiza automático.
+   ══════════════════════════════════════════════════════ */
+
+:root {
+  /* ── PALETTE ── */
+  --color-bg:           #1a1f2e;
+  --color-bg-rgb:       26 31 46;
+  --color-bg-highlight: #1e2436;
+
+  --color-surface:      #252d3d;
+  --color-surface-rgb:  37 45 61;
+
+  --color-darkest:      #141822;
+  --color-darkest-rgb:  20 24 34;
+
+  --color-purple:       #5b5bd6;
+  --color-purple-rgb:   91 91 214;
+
+  --color-muted-surface:     #2d3548;
+  --color-muted-surface-rgb: 45 53 72;
+
+  --color-gold:         #f5c542;
+  --color-gold-rgb:     245 197 66;
+
+  --color-white:        #ffffff;
+
+  --color-muted:        #8892a4;
+  --color-muted-rgb:    136 146 164;
+
+  --color-rose:         #f07070;
+  --color-rose-rgb:     240 112 112;
+
+  /* ── SHADOW RGB (para box-shadow con opacidad) ── */
+  --shadow-rgb:         13 17 23;
+
+  /* ── DERIVED TOKENS ── */
+  --glow-purple:        0 0 12px rgb(var(--color-purple-rgb) / 0.5);
+  --glow-purple-ring:   0 0 0 3px rgb(var(--color-purple-rgb) / 0.25);
+  --glow-gold:          0 0 10px rgb(var(--color-gold-rgb) / 0.55);
+  --gradient-header:    linear-gradient(to bottom right, var(--color-surface), var(--color-darkest));
+  --gradient-radial:    radial-gradient(ellipse at 50% 30%, var(--color-bg-highlight) 0%, var(--color-bg) 65%);
+
+  /* ── LEGACY ALIASES ── */
+  --bg-primary:     var(--color-bg);
+  --bg-surface:     var(--color-surface);
+  --accent-primary: var(--color-purple);
+  --accent-muted:   var(--color-muted-surface);
+  --accent-gold:    var(--color-gold);
+  --accent-rose:    var(--color-rose);
+  --text-primary:   var(--color-white);
+  --text-muted:     var(--color-muted);
+}

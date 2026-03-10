@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//cygdrive/c/Users/jcbui/**)",
+      "Bash(node -e \"require\\(''./node_modules/@dicebear/core/dist/index.cjs''\\)\")",
+      "Bash(node -e \"require\\(''./node_modules/framer-motion/dist/framer-motion.cjs.js''\\)\")"
+    ]
+  }
+}

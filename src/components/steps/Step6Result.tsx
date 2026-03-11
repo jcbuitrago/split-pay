@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useBill } from '../../context/BillContext';
 import { useBillSplit } from '../../hooks/useBillSplit';
 import { formatCOP } from '../../utils/formatCurrency';
@@ -14,7 +14,7 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
   index: number;
 }) {
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [paid, setPaid] = useState(false);
   const haptic = useHaptic();
 
   function buildPersonMessage(): string {
@@ -43,15 +43,9 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   }
 
-  async function handleCopyTotal() {
+  function handleTogglePaid() {
     haptic();
-    try {
-      await navigator.clipboard.writeText(`${split.person.name}: ${formatCOP(split.total)}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard not available
-    }
+    setPaid(p => !p);
   }
 
   return (
@@ -59,8 +53,8 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.3 }}
-      className="rounded-2xl overflow-hidden border"
-      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'rgba(255,255,255,0.06)' }}
+      className="rounded-2xl overflow-hidden border transition-colors"
+      style={{ backgroundColor: 'var(--color-surface)', borderColor: paid ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.06)' }}
     >
       {/* Card header */}
       <button
@@ -93,11 +87,39 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
           WhatsApp
         </button>
         <button
-          onClick={handleCopyTotal}
-          className="px-4 py-2 rounded-xl font-semibold text-sm active:opacity-80 transition-all border"
-          style={{ backgroundColor: 'rgba(245,197,66,0.12)', color: 'var(--color-gold)', borderColor: 'rgba(245,197,66,0.25)' }}
+          onClick={handleTogglePaid}
+          className="w-10 h-9 rounded-xl flex items-center justify-center text-sm active:scale-90 transition-all border relative overflow-hidden shrink-0"
+          style={{
+            backgroundColor: paid ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)',
+            borderColor: paid ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)',
+          }}
+          aria-label={paid ? 'Marcar como no pagado' : 'Marcar como pagado'}
         >
-          {copied ? '✅' : '📋'}
+          <AnimatePresence mode="wait" initial={false}>
+            {paid ? (
+              <motion.span
+                key="check"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                style={{ color: '#22c55e', lineHeight: 1 }}
+              >
+                ✓
+              </motion.span>
+            ) : (
+              <motion.span
+                key="receipt"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                style={{ lineHeight: 1 }}
+              >
+                📋
+              </motion.span>
+            )}
+          </AnimatePresence>
         </button>
       </div>
 
@@ -132,7 +154,7 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
 }
 
 export default function Step6Result() {
-  const { state, dispatch } = useBill();
+  const { state, dispatch, prevStep } = useBill();
   const haptic = useHaptic();
   const { total, subtotal, tax, tip, splits } = useBillSplit();
   const [copied, setCopied] = useState(false);
@@ -223,13 +245,22 @@ export default function Step6Result() {
         >
           {copied ? '✅ ¡Copiado!' : '📤 Compartir resultado'}
         </button>
-        <button
-          onClick={handleReset}
-          className="w-full py-3 border rounded-2xl font-semibold text-sm active:opacity-70 transition-opacity"
-          style={{ borderColor: 'var(--color-muted-surface)', color: 'var(--color-muted)' }}
-        >
-          🔄 Nueva cuenta
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={prevStep}
+            className="flex-1 py-3 border rounded-2xl font-semibold text-sm active:opacity-70 transition-opacity"
+            style={{ borderColor: 'var(--color-muted-surface)', color: 'var(--color-muted)' }}
+          >
+            ← Atrás
+          </button>
+          <button
+            onClick={handleReset}
+            className="flex-1 py-3 border rounded-2xl font-semibold text-sm active:opacity-70 transition-opacity"
+            style={{ borderColor: 'var(--color-muted-surface)', color: 'var(--color-muted)' }}
+          >
+            🔄 Nueva cuenta
+          </button>
+        </div>
       </div>
     </div>
   );

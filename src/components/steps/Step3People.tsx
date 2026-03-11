@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useBill } from '../../context/BillContext';
 import PersonAvatar from '../ui/PersonAvatar';
 import StepFooter from '../ui/StepFooter';
@@ -81,31 +82,38 @@ export default function Step3People() {
         )}
 
         {/* Grid 2 columnas */}
-        <div className="grid grid-cols-2 gap-3">
-          {state.people.map(person => (
-            <div
-              key={person.id}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl border relative"
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                borderColor: 'rgba(91,91,214,0.3)',
-              }}
-            >
-              <button
-                onClick={() => handleRemove(person.id)}
-                className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold active:opacity-70"
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--color-muted)' }}
-                aria-label={`Eliminar ${person.name}`}
+        <motion.div layout className="grid grid-cols-2 gap-3">
+          <AnimatePresence>
+            {state.people.map(person => (
+              <motion.div
+                key={person.id}
+                layout
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.18 }}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl border relative"
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  borderColor: 'rgba(91,91,214,0.3)',
+                }}
               >
-                ✕
-              </button>
-              <PersonAvatar name={person.name} size="sm" />
-              <span className="text-sm font-semibold text-center truncate w-full" style={{ color: 'var(--color-white)' }}>
-                {person.name}
-              </span>
-            </div>
-          ))}
-        </div>
+                <button
+                  onClick={() => handleRemove(person.id)}
+                  className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold active:opacity-70"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'var(--color-muted)' }}
+                  aria-label={`Eliminar ${person.name}`}
+                >
+                  ✕
+                </button>
+                <PersonAvatar name={person.name} size="sm" />
+                <span className="text-sm font-semibold text-center truncate w-full" style={{ color: 'var(--color-white)' }}>
+                  {person.name}
+                </span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       <StepFooter onBack={prevStep} onContinue={nextStep} continueDisabled={!canContinue} />

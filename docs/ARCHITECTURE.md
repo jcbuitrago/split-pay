@@ -35,7 +35,7 @@ como secreto de Cloudflare, y devuelve solo los ítems ya validados.
 ## Flujo de datos: escaneo de factura
 
 ```
-Usuario toma foto
+Usuario toca la zona de carga (dropzone) o arrastra una imagen
       │
       ▼
 fileToBase64()          ← Redimensiona a máx. 1200px, comprime a JPEG 0.82
@@ -63,20 +63,20 @@ SET_ITEMS en BillContext → avanza a Step 2
 
 ```
 Step 1: Entrada
-  ├── [Escanear]  → cámara/archivo → OCR → Step 2
-  └── [Manual]   → Step 2 con lista vacía
+  ├── [Zona dropzone/cámara]  → toca o arrastra → OCR → Step 2
+  └── [Ingresar manualmente]  → Step 2 con lista vacía
 
 Step 2: Revisar ítems
-  └── Lista editable: nombre, cantidad, precio unitario
+  └── Lista editable con ItemCard (inline expand para editar)
       Validación: ≥1 ítem, todos con precio > 0
 
 Step 3: Personas
-  └── Agregar personas con nombre y color único (paleta de 20)
+  └── Agregar personas con nombre; cards en grid 2 col con avatar DiceBear
       Validación: mínimo 2 personas
 
 Step 4: Asignar ítems
   └── Para cada ítem: seleccionar quién lo consumió
-      Chips con scroll horizontal, multi-selección
+      Avatares circulares con scroll horizontal, multi-selección
       Validación: todos los ítems asignados
 
 Step 5: Impuesto y propina
@@ -85,9 +85,10 @@ Step 5: Impuesto y propina
       Preview del total en tiempo real
 
 Step 6: Resultado
-  └── Total por persona con desglose
+  └── Total por persona con desglose en acordeón
       Botón WhatsApp individual por persona
-      Botón "Nueva cuenta" → RESET
+      Toggle pagado/no pagado por persona (📋 → ✓ verde)
+      Botón "← Atrás" + Botón "🔄 Nueva cuenta" → RESET
 ```
 
 ---
@@ -95,8 +96,8 @@ Step 6: Resultado
 ## Estado global (BillContext)
 
 El estado de toda la app vive en un único `useReducer` en `BillContext.tsx`.
-Ningún componente tiene estado local relevante para el negocio — todo pasa
-por el contexto.
+La mayoría de componentes de pasos tienen estado local mínimo (UI efímera como
+`editing`, `paid`); toda la lógica de negocio pasa por el contexto.
 
 ```
 BillState
@@ -114,7 +115,6 @@ BillState
 │   ├── name: string
 │   └── color: string  (hex de PERSON_COLORS)
 │
-├── darkMode: boolean
 ├── taxPercent: number      (default 8)
 ├── taxIncluded: boolean    (default true)
 ├── tipPercent: number      (default 10)
@@ -135,7 +135,6 @@ BillState
 | `ADD_ITEM` / `UPDATE_ITEM` / `REMOVE_ITEM` / `SET_ITEMS` | CRUD de ítems |
 | `ADD_PERSON` / `REMOVE_PERSON` | CRUD de personas; `REMOVE_PERSON` limpia asignaciones |
 | `ASSIGN_PERSON` / `UNASSIGN_PERSON` | Asignación ítem ↔ persona |
-| `SET_DARK_MODE` | Toggle de tema |
 | `SET_TAX_*` / `SET_TIP_*` | Configuración de IVA y propina |
 | `SET_LOADING` / `SET_ERROR` | Estado de carga y errores |
 | `RESET` | Vuelve al estado inicial (nueva cuenta) |
@@ -178,20 +177,61 @@ Por persona:
 main.tsx
 └── BillProvider (context)
     └── App
-        ├── Stepper          ← barra de progreso
+        ├── Stepper          ← barra de progreso (oculta en Step 6)
         └── StepContent      ← switch por state.step
             ├── Step1Entry
             │   └── ErrorMessage (si OCR falla)
             ├── Step2Review
-            │   └── ItemForm (agregar/editar ítem)
+            │   ├── ItemCard (con edición inline AnimatePresence)
+            │   └── ItemForm (agregar nuevo ítem)
             ├── Step3People
-            │   └── PersonChips
+            │   └── PersonAvatar (grid 2 columnas)
             ├── Step4Assign
-            │   └── PersonChips (por ítem)
+            │   └── PersonAvatar via PersonChips (scroll horizontal)
             ├── Step5TaxTip
             └── Step6Result
-                └── PersonChips (desglose)
+                └── PersonCard (acordeón + WhatsApp + toggle pagado)
+            │
+            └── StepFooter   ← footer compartido Atrás / Continuar
 ```
+
+---
+
+## Sistema de diseño
+
+### Modo oscuro permanente
+La app siempre está en modo oscuro: `class="dark"` está fijo en `<html>` (index.html).
+No hay toggle de tema. Todos los colores provienen de variables CSS en `src/theme.css`.
+
+### Paleta de colores (`src/theme.css`)
+
+`theme.css` es la **única fuente de verdad** para colores. Los componentes usan
+`style={{ color: 'var(--color-gold)' }}` — nunca hex hardcodeados.
+
+| Variable CSS | Hex | Uso |
+|---|---|---|
+| `--color-bg` | `#1a1f2e` | Fondo principal |
+| `--color-surface` | `#252d3d` | Cards y superficies grandes |
+| `--color-darkest` | `#141822` | Stepper, footer, elementos más oscuros |
+| `--color-purple` | `#5b5bd6` | Acento primario — botones, avatares asignados, progreso |
+| `--color-gold` | `#f5c542` | Acento dorado — totales, valores destacados |
+| `--color-rose` | `#f07070` | Acento rosa — advertencias, Step1 |
+| `--color-muted` | `#8892a4` | Texto secundario / placeholder |
+| `--color-muted-surface` | `#2d3548` | Track del stepper, bordes sutiles |
+
+Cada variable hex tiene su par RGB (e.g. `--color-purple-rgb: 91 91 214`) para
+habilitar los modificadores de opacidad de Tailwind (`bg-brand-purple/20`).
+
+### Tipografía
+- **Títulos**: Playfair Display (`font-display`) — cargada desde Google Fonts
+- **Cuerpo**: DM Sans (`font-body`) — cargada desde Google Fonts
+
+### Avatares (`PersonAvatar.tsx`)
+- Librería: `@dicebear/core` + `@dicebear/collection` — generación 100% local
+- Estilo: `funEmoji`, seed = nombre de la persona (mismo nombre → mismo emoji)
+- Tamaños: `sm` = 32px (chips en Step4, barra sticky), `md` = 48px (cards en Step6)
+- Estado **no asignado**: borde `--color-muted-surface` sutil
+- Estado **asignado**: borde `--color-purple` + `boxShadow: var(--glow-purple)` + badge ✓
 
 ---
 

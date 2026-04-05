@@ -4,6 +4,23 @@ import { calculateSubtotal, calculateTax, calculateTip, roundToNearest100 } from
 import StepFooter from '../ui/StepFooter';
 import { useHaptic } from '../../hooks/useHaptic';
 
+// ToggleButton lives OUTSIDE Step5TaxTip so React sees the same
+// component reference on every render → updates instead of remounting.
+function ToggleButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+      style={{
+        backgroundColor: active ? 'var(--color-purple)' : 'transparent',
+        color: active ? 'var(--color-white)' : 'var(--color-muted)',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function Step5TaxTip() {
   const { state, dispatch, nextStep, prevStep } = useBill();
   const haptic = useHaptic();
@@ -36,21 +53,6 @@ export default function Step5TaxTip() {
     color: 'var(--color-white)',
     borderColor: 'rgba(255,255,255,0.1)',
   };
-
-  function ToggleButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-    return (
-      <button
-        onClick={onClick}
-        className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-        style={{
-          backgroundColor: active ? 'var(--color-purple)' : 'transparent',
-          color: active ? '#ffffff' : 'var(--color-muted)',
-        }}
-      >
-        {label}
-      </button>
-    );
-  }
 
   return (
     <div className="flex flex-col flex-1" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -180,7 +182,7 @@ export default function Step5TaxTip() {
         {/* Preview del total */}
         <div
           className="rounded-2xl p-4 flex flex-col gap-2 border"
-          style={{ backgroundColor: 'rgba(91,91,214,0.08)', borderColor: 'rgba(91,91,214,0.25)' }}
+          style={{ backgroundColor: 'rgb(var(--color-purple-rgb) / 0.08)', borderColor: 'rgb(var(--color-purple-rgb) / 0.25)' }}
         >
           <h3 className="font-semibold text-sm mb-1" style={{ color: 'var(--color-purple)' }}>Resumen</h3>
           <div className="flex justify-between text-sm">
@@ -204,7 +206,7 @@ export default function Step5TaxTip() {
             </span>
             <span style={{ color: 'var(--color-white)' }}>{formatCOP(tip)}</span>
           </div>
-          <div className="h-px my-1" style={{ backgroundColor: 'rgba(91,91,214,0.25)' }} />
+          <div className="h-px my-1" style={{ backgroundColor: 'rgb(var(--color-purple-rgb) / 0.25)' }} />
           <div className="flex justify-between font-bold">
             <span style={{ color: 'var(--color-white)' }}>Total</span>
             <span className="text-xl font-display" style={{ color: 'var(--color-gold)' }}>{formatCOP(total)}</span>

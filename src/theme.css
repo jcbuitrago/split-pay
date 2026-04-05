@@ -26,12 +26,19 @@
   --color-gold-rgb:     245 197 66;
 
   --color-white:        #ffffff;
+  --color-white-rgb:    255 255 255;
 
   --color-muted:        #8892a4;
   --color-muted-rgb:    136 146 164;
 
   --color-rose:         #f07070;
   --color-rose-rgb:     240 112 112;
+
+  --color-whatsapp:     #128C7E;
+  --color-whatsapp-rgb: 18 140 126;
+
+  --color-success:      #22c55e;
+  --color-success-rgb:  34 197 94;
 
   /* ── SHADOW RGB (para box-shadow con opacidad) ── */
   --shadow-rgb:         13 17 23;

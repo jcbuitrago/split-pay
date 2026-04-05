@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useBill } from '../../context/BillContext';
 import { scanBill, fileToBase64 } from '../../hooks/useBillScanner';
@@ -14,6 +14,15 @@ export default function Step1Entry() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Clean up blob URL when component unmounts or preview changes
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   function setFile(file: File) {
     setSelectedFile(file);
     setError(null);
@@ -26,7 +35,7 @@ export default function Step1Entry() {
       haptic();
       setFile(accepted[0]);
     }
-  }, []);
+  }, [haptic]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -53,6 +62,10 @@ export default function Step1Entry() {
   }
 
   function handleRetake() {
+    // Clean up the blob URL from memory before clearing preview
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setPreview(null);
     setSelectedFile(null);
     setError(null);
@@ -105,8 +118,8 @@ export default function Step1Entry() {
             onClick={handleScanClick}
             className="border-2 border-dashed rounded-2xl py-10 px-4 flex flex-col items-center gap-3 transition-all w-full active:opacity-80"
             style={{
-              borderColor: isDragActive ? 'var(--color-purple)' : 'rgba(91,91,214,0.3)',
-              backgroundColor: isDragActive ? 'rgba(91,91,214,0.08)' : 'rgba(91,91,214,0.04)',
+              borderColor: isDragActive ? 'var(--color-purple)' : 'rgb(var(--color-purple-rgb) / 0.3)',
+              backgroundColor: isDragActive ? 'rgb(var(--color-purple-rgb) / 0.08)' : 'rgb(var(--color-purple-rgb) / 0.04)',
             }}
           >
             <input {...getInputProps()} />
@@ -157,7 +170,7 @@ export default function Step1Entry() {
       {/* Preview */}
       {preview && !isLoading && (
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgb(var(--color-white-rgb) / 0.1)' }}>
             <img src={preview} alt="Vista previa" className="w-full object-contain max-h-64" />
           </div>
           <div className="flex gap-3">
@@ -171,7 +184,7 @@ export default function Step1Entry() {
             <button
               onClick={handleUsePhoto}
               className="flex-1 py-3 rounded-2xl font-bold active:opacity-80 transition-opacity shadow-navy-sm"
-              style={{ backgroundColor: 'var(--color-purple)', color: '#ffffff' }}
+              style={{ backgroundColor: 'var(--color-purple)', color: 'var(--color-white)' }}
             >
               ✅ Usar esta foto
             </button>

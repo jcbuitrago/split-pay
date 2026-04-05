@@ -54,7 +54,7 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.3 }}
       className="rounded-2xl overflow-hidden border transition-colors"
-      style={{ backgroundColor: 'var(--color-surface)', borderColor: paid ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.06)' }}
+      style={{ backgroundColor: 'var(--color-surface)', borderColor: paid ? 'rgb(var(--color-success-rgb) / 0.5)' : 'rgb(var(--color-white-rgb) / 0.06)' }}
     >
       {/* Card header */}
       <button
@@ -79,7 +79,7 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
         <button
           onClick={handleWhatsApp}
           className="flex-1 py-2 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:opacity-80"
-          style={{ backgroundColor: '#128C7E', color: '#ffffff' }}
+          style={{ backgroundColor: 'var(--color-whatsapp)', color: 'var(--color-white)' }}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white shrink-0" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -90,8 +90,8 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
           onClick={handleTogglePaid}
           className="w-10 h-9 rounded-xl flex items-center justify-center text-sm active:scale-90 transition-all border relative overflow-hidden shrink-0"
           style={{
-            backgroundColor: paid ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)',
-            borderColor: paid ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)',
+            backgroundColor: paid ? 'rgb(var(--color-success-rgb) / 0.15)' : 'rgb(var(--color-white-rgb) / 0.06)',
+            borderColor: paid ? 'rgb(var(--color-success-rgb) / 0.4)' : 'rgb(var(--color-white-rgb) / 0.1)',
           }}
           aria-label={paid ? 'Marcar como no pagado' : 'Marcar como pagado'}
         >
@@ -103,7 +103,7 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                style={{ color: '#22c55e', lineHeight: 1 }}
+                style={{ color: 'var(--color-success)', lineHeight: 1 }}
               >
                 ✓
               </motion.span>
@@ -125,14 +125,14 @@ function PersonCard({ split, taxIncluded, tipIsVoluntary, index }: {
 
       {/* Expandable breakdown */}
       {open && (
-        <div className="px-4 pb-4 flex flex-col gap-1.5 border-t pt-3" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="px-4 pb-4 flex flex-col gap-1.5 border-t pt-3" style={{ borderColor: 'rgb(var(--color-white-rgb) / 0.06)' }}>
           {split.items.map(({ item, share }) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span className="truncate flex-1 pr-2" style={{ color: 'var(--color-muted)' }}>{item.name} ×{item.quantity}</span>
               <span className="font-medium shrink-0" style={{ color: 'var(--color-white)' }}>{formatCOP(share)}</span>
             </div>
           ))}
-          <div className="h-px my-1" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }} />
+          <div className="h-px my-1" style={{ backgroundColor: 'rgb(var(--color-white-rgb) / 0.06)' }} />
           <div className="flex justify-between text-xs">
             <span style={{ color: 'var(--color-muted)' }}>{taxIncluded ? 'Subtotal (IVA incl.)' : 'Subtotal'}</span>
             <span style={{ color: 'var(--color-muted)' }}>{formatCOP(split.subtotal)}</span>
@@ -158,6 +158,10 @@ export default function Step6Result() {
   const haptic = useHaptic();
   const { total, subtotal, tax, tip, splits } = useBillSplit();
   const [copied, setCopied] = useState(false);
+
+  // Calculate the sum of individual rounded totals
+  const sumOfIndividualTotals = splits.reduce((sum, s) => sum + s.total, 0);
+  const hasDiscrepancy = sumOfIndividualTotals !== total;
 
   function buildShareText(): string {
     const lines = ['🧾 *SplitBill — División de cuenta*', ''];
@@ -213,6 +217,15 @@ export default function Step6Result() {
           {!state.taxIncluded && <span>IVA: {formatCOP(tax)}</span>}
           <span>Propina: {formatCOP(tip)}</span>
         </div>
+        {hasDiscrepancy && (
+          <div className="text-xs mt-3 px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgb(var(--color-gold-rgb) / 0.1)', borderLeft: '3px solid var(--color-gold)' }}>
+            <p style={{ color: 'var(--color-gold)', fontWeight: 600 }}>💡 Nota sobre redondeo</p>
+            <p className="mt-1" style={{ color: 'var(--color-muted)' }}>
+              Los totales por persona están redondeados al $100 más cercano para facilitar el pago.
+              Suma de individuales: {formatCOP(sumOfIndividualTotals)}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Person cards */}
@@ -232,7 +245,7 @@ export default function Step6Result() {
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-4 border-t flex flex-col gap-3" style={{ backgroundColor: 'var(--color-darkest)', borderColor: 'rgba(255,255,255,0.06)' }}>
+      <div className="px-4 py-4 border-t flex flex-col gap-3" style={{ backgroundColor: 'var(--color-darkest)', borderColor: 'rgb(var(--color-white-rgb) / 0.06)' }}>
         {state.tipIsVoluntary && (
           <p className="text-xs text-center" style={{ color: 'var(--color-muted)' }}>
             La propina es voluntaria — Ley colombiana
@@ -241,7 +254,7 @@ export default function Step6Result() {
         <button
           onClick={handleShare}
           className="w-full py-3 rounded-2xl font-bold active:opacity-80 transition-opacity shadow-navy-sm"
-          style={{ backgroundColor: 'var(--color-purple)', color: '#ffffff' }}
+          style={{ backgroundColor: 'var(--color-purple)', color: 'var(--color-white)' }}
         >
           {copied ? '✅ ¡Copiado!' : '📤 Compartir resultado'}
         </button>

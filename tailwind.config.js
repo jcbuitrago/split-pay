@@ -17,6 +17,8 @@ export default {
           'muted-surface':'rgb(var(--color-muted-surface-rgb) / <alpha-value>)',
           gold:           'rgb(var(--color-gold-rgb) / <alpha-value>)',
           rose:           'rgb(var(--color-rose-rgb) / <alpha-value>)',
+          whatsapp:       'rgb(var(--color-whatsapp-rgb) / <alpha-value>)',
+          success:        'rgb(var(--color-success-rgb) / <alpha-value>)',
         },
       },
       fontFamily: {

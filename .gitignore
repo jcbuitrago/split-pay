@@ -4,6 +4,10 @@ node_modules/
 # Build
 dist/
 
+# Cloudflare Worker
+worker/.wrangler/
+.wrangler/
+
 # Variables de entorno (nunca commitear)
 .env
 .env.local

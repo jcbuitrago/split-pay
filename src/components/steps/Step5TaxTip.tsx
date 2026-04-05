@@ -45,13 +45,13 @@ export default function Step5TaxTip() {
 
   const cardStyle = {
     backgroundColor: 'var(--color-surface)',
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgb(var(--color-white-rgb) / 0.06)',
   };
 
   const inputStyle = {
     backgroundColor: 'var(--color-bg)',
     color: 'var(--color-white)',
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgb(var(--color-white-rgb) / 0.1)',
   };
 
   return (

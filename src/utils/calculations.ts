@@ -66,9 +66,9 @@ export function calculateSplit(state: BillState): PersonSplit[] {
     const proportion = subtotal > 0 ? personSubtotal / subtotal : 0;
     const personTax = calculateTax(personSubtotal, state.taxPercent, state.taxIncluded);
     const personTip = tip * proportion;
-    const personTotal = roundToNearest100(state.taxIncluded
+    const personTotal = state.taxIncluded
       ? personSubtotal + personTip          // IVA ya en subtotal
-      : personSubtotal + personTax + personTip); // IVA se suma aparte
+      : personSubtotal + personTax + personTip; // IVA se suma aparte
     return {
       person,
       subtotal: personSubtotal,

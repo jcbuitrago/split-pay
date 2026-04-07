@@ -159,10 +159,6 @@ export default function Step6Result() {
   const { total, subtotal, tax, tip, splits } = useBillSplit();
   const [copied, setCopied] = useState(false);
 
-  // Calculate the sum of individual rounded totals
-  const sumOfIndividualTotals = splits.reduce((sum, s) => sum + s.total, 0);
-  const hasDiscrepancy = sumOfIndividualTotals !== total;
-
   function buildShareText(): string {
     const lines = ['🧾 *SplitBill — División de cuenta*', ''];
     splits.forEach(s => {
@@ -217,15 +213,6 @@ export default function Step6Result() {
           {!state.taxIncluded && <span>IVA: {formatCOP(tax)}</span>}
           <span>Propina: {formatCOP(tip)}</span>
         </div>
-        {hasDiscrepancy && (
-          <div className="text-xs mt-3 px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgb(var(--color-gold-rgb) / 0.1)', borderLeft: '3px solid var(--color-gold)' }}>
-            <p style={{ color: 'var(--color-gold)', fontWeight: 600 }}>💡 Nota sobre redondeo</p>
-            <p className="mt-1" style={{ color: 'var(--color-muted)' }}>
-              Los totales por persona están redondeados al $100 más cercano para facilitar el pago.
-              Suma de individuales: {formatCOP(sumOfIndividualTotals)}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Person cards */}

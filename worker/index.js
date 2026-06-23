@@ -39,9 +39,9 @@ export default {
       return corsResponse({ error: 'Origen no permitido' }, 403, allowedOrigin);
     }
 
-    // Rate limiting por IP (en memoria)
+    // Rate limiting por IP (KV con fallback en memoria)
     const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
-    if (isRateLimited(ip)) {
+    if (await isRateLimited(ip, env)) {
       return corsResponse({ error: 'Demasiadas solicitudes. Intenta en unos minutos.' }, 429, allowedOrigin);
     }
 
@@ -116,14 +116,27 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
     clearTimeout(timeout);
 
     if (!anthropicResponse.ok) {
-      const errData = await anthropicResponse.json().catch(() => ({}));
+      let errData = {};
+      try {
+        const errText = await readBodyWithLimit(anthropicResponse, 65536); // Máximo 64KB para error
+        errData = JSON.parse(errText);
+      } catch (e) {
+        // Ignorar error de parsing en la respuesta de error de Anthropic
+      }
       const detail = errData?.error?.message ?? anthropicResponse.statusText;
       console.error('Anthropic error:', anthropicResponse.status, detail);
       return corsResponse({ error: 'No se pudo procesar la factura. Intenta de nuevo.' }, 502, allowedOrigin);
     }
 
-    const aiData = await anthropicResponse.json();
-    const rawText = aiData?.content?.[0]?.text ?? '';
+    let rawText = '';
+    try {
+      const responseBodyText = await readBodyWithLimit(anthropicResponse, 1024 * 1024); // Máximo 1MB
+      const aiData = JSON.parse(responseBodyText);
+      rawText = aiData?.content?.[0]?.text ?? '';
+    } catch (err) {
+      console.error('Failed to read or parse Anthropic response:', err);
+      return corsResponse({ error: 'La respuesta del servicio de OCR no pudo ser procesada.' }, 502, allowedOrigin);
+    }
 
     // Parsear JSON de la respuesta (non-greedy para evitar extraer bloques incorrectos)
     let parsed;
@@ -172,8 +185,85 @@ function corsResponse(body, status, origin) {
   return new Response(JSON.stringify(body), { status, headers });
 }
 
-function isRateLimited(ip) {
+async function readBodyWithLimit(response, maxBytes) {
+  const contentLengthHeader = response.headers.get('content-length');
+  if (contentLengthHeader) {
+    const contentLength = parseInt(contentLengthHeader, 10);
+    if (!isNaN(contentLength) && contentLength > maxBytes) {
+      throw new Error(`Response size limit exceeded: ${contentLength} bytes`);
+    }
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      if (value) {
+        totalBytes += value.length;
+        if (totalBytes > maxBytes) {
+          throw new Error(`Response size limit exceeded: > ${maxBytes} bytes`);
+        }
+        chunks.push(value);
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  const textDecoder = new TextDecoder('utf-8');
+  return textDecoder.decode(combined);
+}
+
+async function isRateLimited(ip, env) {
   const now = Date.now();
+
+  // 1. Intentar usar Cloudflare KV si está disponible
+  if (env && env.RATE_LIMIT_KV) {
+    try {
+      const kvKey = `rl:${ip}`;
+      const dataStr = await env.RATE_LIMIT_KV.get(kvKey);
+      let data = null;
+      if (dataStr) {
+        try {
+          data = JSON.parse(dataStr);
+        } catch (e) {
+          // Ignorar JSON corrupto
+        }
+      }
+
+      if (!data || now > data.resetAt) {
+        const expirationSeconds = 3600; // 1 hora
+        const newData = { count: 1, resetAt: now + 3600 * 1000 };
+        await env.RATE_LIMIT_KV.put(kvKey, JSON.stringify(newData), { expirationTtl: expirationSeconds });
+        return false;
+      }
+
+      if (data.count >= MAX_REQUESTS_PER_HOUR) {
+        return true;
+      }
+
+      data.count++;
+      const secondsLeft = Math.max(Math.ceil((data.resetAt - now) / 1000), 60);
+      await env.RATE_LIMIT_KV.put(kvKey, JSON.stringify(data), { expirationTtl: secondsLeft });
+      return false;
+    } catch (err) {
+      console.error('KV rate limit error, falling back to memory Map:', err);
+    }
+  }
+
+  // 2. Fallback a Map en memoria
   const entry = rateLimitStore.get(ip);
 
   if (!entry || now > entry.resetAt) {

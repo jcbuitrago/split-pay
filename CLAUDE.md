@@ -170,7 +170,7 @@ interface BillState {
 
 ## Seguridad
 
-### Vulnerabilidades corregidas (2026-02-25)
+### Vulnerabilidades corregidas (2026-06-22)
 | Archivo | Fix |
 |---------|-----|
 | `worker/index.js` | CORS: usa origen de la whitelist, nunca refleja el Origin del request |
@@ -179,13 +179,12 @@ interface BillState {
 | `worker/index.js` | Sanitización de items del OCR (name/price/quantity con límites) |
 | `worker/index.js` | No expone detalles internos de errores de Anthropic al cliente |
 | `src/context/BillContext.tsx` | `originalImage` se borra del estado al avanzar del Step 1 (caso `SET_STEP`) |
+| `worker/index.js` | Rate limiting con Cloudflare KV y fallback en memoria si no está vinculado |
+| `vercel.json` | Añadidas cabeceras HTTP de seguridad: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`, `Referrer-Policy`, `Permissions-Policy` |
+| `worker/index.js` | Límite de tamaño en respuesta de Anthropic leyendo el stream por chunks (máx 1MB éxito, 64KB error) |
 
 ### Vulnerabilidades pendientes (no corregidas aún)
-| Severidad | Archivo | Descripción |
-|-----------|---------|-------------|
-| ALTA | `worker/index.js` | Rate limiting en Map de memoria — no persiste entre instancias de Cloudflare Worker (múltiples instancias = bypass fácil). Migrar a Cloudflare KV o Durable Objects. |
-| MEDIA | `vercel.json` | Faltan cabeceras de seguridad HTTP: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`. Agregar campo `"headers"` en vercel.json. |
-| MEDIA | `worker/index.js` | Sin límite de tamaño en la respuesta JSON de Anthropic (`anthropicResponse.json()`). Podría causar consumo excesivo de memoria si la API retorna una respuesta anormalmente grande. |
+*No hay vulnerabilidades pendientes conocidas.*
 
 ## Lógica de cálculo (calculations.ts):
 - calculateTax(subtotal, taxPercent, taxIncluded):

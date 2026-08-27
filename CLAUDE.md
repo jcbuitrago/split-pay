@@ -278,6 +278,57 @@ Aliases legacy (mantienen compatibilidad con código existente):
 - El Worker en producción está en: https://splitbill-worker.jcbuitrago99.workers.dev
 - El frontend en producción está en: https://split-pay-ochre.vercel.app
 
+## Auditoría de código con agentes de IA
+
+**REGLA: ningún hallazgo de una herramienta de IA se convierte en trabajo sin verificarse.**
+
+Una sola pasada de auditoría produce mayoría de ruido. Medición real sobre este
+repo (2026-08-25): 41 hallazgos → **16 reales, 9 decisiones malinterpretadas como
+bugs, 14 falsos, 2 no verificables**. El 56% no eran defectos.
+
+Por eso toda auditoría automática usa dos etapas separadas.
+
+### Etapa 1 — Buscador (modelo barato, cobertura ancha)
+
+Recorre todo el código y reporta sospechas. Se acepta —y se prefiere— que
+reporte de más. Ejemplo: `/gsd-map-codebase` → `.planning/codebase/CONCERNS.md`
+
+### Etapa 2 — Juez (modelo robusto, alcance estrecho)
+
+Lee **solo la lista de la etapa 1**, nunca el repositorio completo. Por eso
+cuesta poco aunque use un modelo caro.
+
+Postura obligatoria: **asumir que el HALLAZGO está mal, no que el código está mal.**
+
+Por cada hallazgo, los cuatro pasos son obligatorios:
+
+1. **Abrir el archivo y leer las líneas citadas.** Nunca juzgar por la
+   descripción del hallazgo. La etapa 1 reporta como ausente código que sí está
+   presente (caso real: afirmó que faltaba `if ('vibrate' in navigator)` en un
+   archivo de cinco líneas donde está en la línea 3).
+2. **Arqueología de git** — el paso que la etapa 1 nunca hace:
+   `git log --oneline -15 -- <archivo>` y `git log -S'<snippet>'`.
+   Si un commit eliminó deliberadamente lo que el hallazgo quiere "arreglar",
+   es una **DECISIÓN**, no un bug. Aplicarlo revierte trabajo intencional.
+3. **Contrastar contra este `CLAUDE.md`.** Si el arreglo propuesto contradice
+   una regla documentada, el error está en el hallazgo, no en el proyecto.
+4. **Clasificar** en exactamente un grupo:
+   - `CONFIRMADO` — real, con la línea de código como evidencia
+   - `DECISIÓN` — intencional, citando el SHA del commit que lo prueba
+   - `FALSO` — citando la línea que lo desmiente
+   - `NO VERIFICABLE` — indicando qué evidencia haría falta
+
+Salida en `.planning/codebase/CONCERNS-VERIFIED.md`.
+**Solo los `CONFIRMADO` se convierten en trabajo.**
+
+### Por qué funciona
+
+El juez no gana por ser más caro. Gana por tener acceso al pasado.
+**El código dice QUÉ hace; solo el historial dice POR QUÉ.**
+
+Una herramienta que lee lo primero y no lo segundo confunde decisiones con
+descuidos, sin importar qué modelo se le ponga.
+
 ## Estado del proyecto (al 2026-03-09)
 - [x] Todo el flujo de 6 pasos implementado y funcional
 - [x] Cloudflare Worker desplegado y conectado

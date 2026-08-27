@@ -217,7 +217,7 @@ Asignar cada ítem a las personas que lo consumieron. División equitativa entre
 | Desasignar la única persona de un ítem | El ítem vuelve a estado "sin asignar" (borde dorado + ⚠️); "Continuar" se bloquea |
 | Un ítem asignado a 1 persona luego a 2 | El precio por persona se recalcula instantáneamente |
 | Persona con $0 asignado | Su avatar en la barra sticky aparece sin borde (estado inactivo); el usuario puede continuar — una persona con $0 es válida (no consumió nada) |
-| Cantidad de personas que no divide exactamente el precio | La división es por punto flotante (`price * qty / assignedTo.length`); el redondeo al $100 ocurre en Step 6, no aquí |
+| Cantidad de personas que no divide exactamente el precio | La división es por punto flotante (`price * qty / assignedTo.length`); no se redondea por persona en ningún paso — solo el total global en Step 6 |
 | PersonChips overflow (muchas personas) | `overflow-x-auto scrollbar-hide` — desplazamiento horizontal suave sin scrollbar visible |
 
 ---
@@ -321,7 +321,7 @@ _(La propina es voluntaria — Ley colombiana)_  ← si tipIsVoluntary=true
 |---|---|
 | Persona con $0 total | La card se muestra normalmente con total $0 — la persona no consumió nada asignado |
 | Propina $0 | La línea de propina aparece como "$0" en el desglose (no se oculta) |
-| Total con decimales después del reparto proporcional | `roundToNearest100` redondea al $100 más cercano por persona. La suma de individuales puede diferir ±$100×n del total global. |
+| Total con decimales después del reparto proporcional | Los totales por persona se muestran exactos, sin redondear (decisión `60f566a`). Solo el total global se redondea al $100 más cercano. Así la suma de individuales siempre cuadra. |
 | Web Share API cancelada por el usuario | No hay feedback; el error se captura silenciosamente y no se cae al portapapeles (se retorna en el catch) |
 | Portapapeles no disponible (permisos denegados) | Error silencioso — el botón no cambia a "¡Copiado!" |
 | Muchas personas (scroll) | La lista de cards es scrollable verticalmente dentro del contenedor flex-1 |

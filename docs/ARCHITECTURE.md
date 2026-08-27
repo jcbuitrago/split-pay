@@ -166,7 +166,7 @@ Total final: roundToNearest100(total)   ← redondea al $100 más cercano
 Por persona:
   proportion = personSubtotal / subtotal
   personTip = tip × proportion
-  personTotal = roundToNearest100(personSubtotal + personTax + personTip)
+  personTotal = personSubtotal + personTax + personTip   ← sin redondear (ver LOGIC_SPEC §2)
 ```
 
 ---

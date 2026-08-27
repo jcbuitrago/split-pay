@@ -152,15 +152,25 @@ personTax     = calculateTax(personSubtotal, taxPercent, taxIncluded)
 personTip     = tip × proportion            // propina proporcional al consumo
 
 // IVA ya incluido en precios
-personTotal (taxIncluded=true)  = roundToNearest100(personSubtotal + personTip)
+personTotal (taxIncluded=true)  = personSubtotal + personTip
 
 // IVA se suma aparte
-personTotal (taxIncluded=false) = roundToNearest100(personSubtotal + personTax + personTip)
+personTotal (taxIncluded=false) = personSubtotal + personTax + personTip
 ```
 
-**Nota sobre redondeo:** `roundToNearest100` puede hacer que la suma de todos
-los totales individuales difiera hasta ±$100 del total global por persona de
-redondeo. Esto es aceptado como comportamiento correcto.
+**Decisión: los totales por persona NO se redondean.** (commit `60f566a`, 2026-04-06)
+
+Originalmente `personTotal` se envolvía en `roundToNearest100`. Se eliminó porque
+la suma de los totales individuales no cuadraba con el total global: tres personas
+a $3.666,67 se mostraban como $3.700 cada una y sumaban $11.100 contra un total de
+$11.000. Los usuarios notaban que las cifras no cerraban y perdían confianza en la
+app. En el mismo commit se retiró el aviso de Step6 que explicaba la discrepancia,
+porque dejó de ser necesario.
+
+Solo se redondea el **total global**, en `useBillSplit` (ver sección 3).
+
+**NO revertir.** Restaurar el redondeo por persona reintroduce la discrepancia y
+obliga a restaurar también el aviso legal eliminado de Step6.
 
 ---
 

@@ -20,7 +20,58 @@ phases:
 
 next_phase: spec
 next_phase_note: >
-  Cerrar cinco decisiones: (1) el descuento NO reduce la base de la propina; (2) clamp a 0 y destino del remanente; (3) comportamiento de assigned con lista vacia; (4) NO reintroducir redondeo por persona, eliminado a proposito en 60f566a; (5) sincronizar las tres copias de la formula del total.
+  Todas las decisiones estan CERRADAS (ver bloque decisions). Es el change de mayor riesgo:
+  toca dinero y lleva TDD estricto.
+
+decisions:
+  - id: base-de-la-propina
+    closed: 2026-10-27
+    question: El descuento reduce la base sobre la que se calcula la propina?
+    answer: >
+      NO. La propina se sigue calculando sobre el subtotal pre-IVA como hoy
+      (calculations.ts:36-39) y el descuento se resta al final.
+    rationale: El bono lo da el restaurante; no deberia recortar lo que gana el mesero.
+    rejected:
+      - Propina sobre el monto ya descontado.
+      - Un toggle configurable - anade un cuarto campo de estado y duplica los escenarios.
+  - id: totales-negativos
+    closed: 2026-10-27
+    question: En modo assigned, que pasa si el descuento de alguien supera su parte?
+    answer: >
+      Clamp a 0 en el total individual, y el SOBRANTE SE REPARTE entre las demas personas
+      asignadas al descuento; si no quedan, entre todas las personas de la cuenta.
+    rationale: Aprovecha todo el bono en lugar de perderlo.
+    watch_out: >
+      El monto de otra persona baja por una razon que NO aparece en su propio desglose.
+      El spec debe definir como se comunica esa redistribucion en la UI, o el usuario vera
+      un numero que no puede explicar. Riesgo de un segundo bug de transparencia como el
+      que este mismo roadmap esta arreglando.
+    rejected:
+      - Clamp a 0 y el sobrante se pierde.
+      - Prevenirlo en la UI limitando el input.
+  - id: assigned-sin-personas
+    closed: 2026-10-27
+    question: Modo assigned con monto escrito pero lista de personas vacia.
+    answer: >
+      Bloquear "Continuar" (continueDisabled) con un aviso tipo "Selecciona a quien se le
+      aplica el descuento".
+    rationale: Sigue el patron que ya usan Step2, Step3 y Step4 con continueDisabled.
+    rejected:
+      - Caer a equal automaticamente - aplica algo que el usuario no pidio.
+      - Permitirlo con descuento efectivo 0 - parece un bug.
+  - id: redondeo-por-persona
+    closed: 2026-10-27
+    question: Se redondea el descuento por persona?
+    answer: NO. Ni el descuento ni el total por persona se redondean.
+    rationale: >
+      El commit 60f566a elimino el redondeo por persona a proposito. Reintroducirlo
+      revierte trabajo intencional. Solo el total global se redondea (useBillSplit.ts:19).
+  - id: formula-triplicada
+    closed: 2026-10-27
+    question: Como se evita desincronizar el total.
+    answer: >
+      Las tres copias cambian en el mismo commit: useBillSplit.ts:19-21,
+      calculations.ts:70-72 y Step5TaxTip.tsx:31, mas un test que compare las tres.
 
 # Cómo retomar en otra sesión (sin orquestador instalado):
 #   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec

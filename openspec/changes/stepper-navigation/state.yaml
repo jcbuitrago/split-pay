@@ -20,7 +20,29 @@ phases:
 
 next_phase: spec
 next_phase_note: >
-  Decidir en specs que ve el usuario al volver al paso 1 sin foto, ya que SET_STEP borra originalImage a proposito (BillContext.tsx:48). Definir tambien los requisitos de accesibilidad del boton.
+  Todas las decisiones estan CERRADAS (ver bloque decisions). sdd-spec solo tiene que
+  convertirlas en requisitos Given/When/Then.
+
+decisions:
+  - id: paso-1-sin-foto
+    closed: 2026-10-27
+    question: Que ve el usuario al volver al paso 1, donde ya no hay foto.
+    answer: >
+      Zona de drag & drop normal MAS un aviso que explique que la foto no se guarda por
+      seguridad, que los items siguen ahi y que puede continuar o escanear de nuevo.
+    rationale: >
+      No revierte la mitigacion de SET_STEP (BillContext.tsx:48) y evita que el usuario
+      crea que la app perdio su trabajo.
+    rejected:
+      - Zona vacia sin aviso - el usuario que volvio a proposito cree que perdio los datos.
+      - Conservar originalImage en memoria - revierte una mitigacion de seguridad intencional.
+  - id: accesibilidad-del-circulo
+    closed: 2026-10-27
+    question: Requisitos de accesibilidad al convertir el div en boton.
+    answer: >
+      button real (no div con role), aria-current="step" en el paso activo, aria-label
+      descriptivo por paso, disabled real en los no navegables y anillo de foco visible.
+    rationale: Decision tecnica estandar, no de producto. Fijada por el orquestador.
 
 # Cómo retomar en otra sesión (sin orquestador instalado):
 #   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec

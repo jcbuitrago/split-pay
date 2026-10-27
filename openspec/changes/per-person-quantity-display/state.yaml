@@ -20,7 +20,33 @@ phases:
 
 next_phase: spec
 next_phase_note: >
-  Decidir el formato exacto de la etiqueta. PROHIBIDO mostrar cantidad per capita fraccionaria (8 unidades entre 3 = 2,67). Con un solo asignado se mantiene x{quantity} porque es exacto.
+  Todas las decisiones estan CERRADAS (ver bloque decisions). Formato validado con un
+  mockup sobre la paleta real antes de cerrarlo.
+
+decisions:
+  - id: formato-de-etiqueta
+    closed: 2026-10-27
+    question: Formato exacto de la etiqueta del desglose por persona.
+    answer: >
+      En pantalla: "{nombre} - tu parte: 1/{n}", separado por un punto medio, donde n es
+      el NUMERO DE PERSONAS asignadas, no de unidades. La cantidad total de la linea NO
+      se muestra. Con un solo asignado se muestra solo "{nombre}", sin sufijo.
+      En los textos de WhatsApp: "- {nombre} - 1/{n}: {monto}", sin "tu parte:" para no
+      duplicar los dos puntos.
+    rationale: >
+      La fraccion es exacta siempre, incluso cuando las unidades no dividen entre las
+      personas (2 unidades entre 3 = 1/3). Validado por el usuario sobre un mockup con la
+      paleta real.
+    constraints:
+      - PROHIBIDO mostrar cantidad per capita fraccionaria (8 entre 3 = 2,67).
+      - PROHIBIDO mostrar la cantidad total de la linea (el "x8" del bug original).
+      - >-
+        SIN resalte de color en la fraccion: va en el mismo gris de la etiqueta.
+        El usuario rechazo explicitamente el dorado por exceso de contraste.
+    rejected:
+      - 'Formato "x{quantity} (tu 1/4)": sigue mostrando la cantidad total, que es el bug.'
+      - 'Formato "{nombre} / {q} uds / entre {n}": fila demasiado larga a 375px.'
+      - 'Formato "tu parte de {q}": no dice entre cuantos, no se puede verificar la cuenta.'
 
 # Cómo retomar en otra sesión (sin orquestador instalado):
 #   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec

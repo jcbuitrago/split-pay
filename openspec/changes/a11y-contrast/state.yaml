@@ -1,0 +1,53 @@
+# DAG state — orquestado manualmente (no hay comando /sdd-new instalado en este repo)
+change: a11y-contrast
+artifact_store: openspec
+created: 2026-10-27
+updated: 2026-10-27
+risk: medium
+strict_tdd_applies: true
+
+current_phase: proposal
+
+phases:
+  explore:  { status: done,    artifact: exploration.md }
+  propose:  { status: done,    artifact: proposal.md }
+  spec:     { status: pending, artifact: specs/ }
+  design:   { status: pending, artifact: design.md }
+  tasks:    { status: pending, artifact: tasks.md }
+  apply:    { status: pending, artifact: null }
+  verify:   { status: pending, artifact: verify-report.md }
+  archive:  { status: pending, artifact: null }
+
+next_phase: spec
+next_phase_note: >
+  Los valores hex concretos de los tokens nuevos NO estan decididos: hay que proponerlos,
+  medirlos y que el usuario apruebe el aspecto antes de aplicar nada.
+
+decisions:
+  - id: alcance-separado
+    closed: 2026-10-27
+    question: El arreglo de contraste va dentro de per-person-quantity-display o aparte?
+    answer: Change propio.
+    rationale: >
+      Toca src/theme.css, que es la paleta de TODA la app. Un change de presentacion del
+      desglose no deberia modificar la paleta global.
+  - id: origen-del-hallazgo
+    closed: 2026-10-27
+    question: De donde salio.
+    answer: >
+      Del mockup del desglose por persona. Al medir la paleta aparecieron cinco pares que
+      fallan WCAG 2.1 AA, y el peor NO era el que se sospechaba a simple vista.
+    measured:
+      - purple sobre surface = 2.57 (falla incluso el umbral de texto grande, 3.0)
+      - purple sobre bg = 3.06 (solo pasa como texto grande)
+      - muted sobre muted_surface = 3.90
+      - muted sobre surface = 4.40
+      - whatsapp sobre white = 4.14
+
+open_questions:
+  - Valores hex concretos de --color-purple-text y del nuevo --color-muted.
+  - Si el texto del boton de WhatsApp se oscurece o se agranda (el verde de marca no se toca).
+
+# Cómo retomar en otra sesión (sin orquestador instalado):
+#   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec
+#   y change-name = a11y-contrast

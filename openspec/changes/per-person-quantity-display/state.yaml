@@ -1,0 +1,27 @@
+# DAG state — orquestado manualmente (no hay comando /sdd-new instalado en este repo)
+change: per-person-quantity-display
+artifact_store: openspec
+created: 2026-10-27
+updated: 2026-10-27
+risk: low
+strict_tdd_applies: true
+
+current_phase: proposal
+
+phases:
+  explore:  { status: done,    artifact: exploration.md }
+  propose:  { status: done,    artifact: proposal.md }
+  spec:     { status: pending, artifact: specs/ }
+  design:   { status: pending, artifact: design.md }
+  tasks:    { status: pending, artifact: tasks.md }
+  apply:    { status: pending, artifact: null }
+  verify:   { status: pending, artifact: verify-report.md }
+  archive:  { status: pending, artifact: null }
+
+next_phase: spec
+next_phase_note: >
+  Decidir el formato exacto de la etiqueta. PROHIBIDO mostrar cantidad per capita fraccionaria (8 unidades entre 3 = 2,67). Con un solo asignado se mantiene x{quantity} porque es exacto.
+
+# Cómo retomar en otra sesión (sin orquestador instalado):
+#   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec
+#   y change-name = per-person-quantity-display

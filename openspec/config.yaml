@@ -1,0 +1,117 @@
+# openspec/config.yaml — SplitBill (split-pay)
+# Generado por sdd-init v3.0 · modo openspec · 2026-10-27
+schema: spec-driven
+
+context: |
+  Tech stack: React 18.3 + Vite 8 + TypeScript 5.6 (strict) + Tailwind 3.4; framer-motion,
+    react-dropzone, @dicebear/core+collection (avatares locales), vite-plugin-pwa.
+  Architecture: PWA mobile-first de 6 pasos. Estado global con useReducer en
+    src/context/BillContext.tsx (sin localStorage ni cookies — se pierde al cerrar, es intencional).
+    Lógica de dinero pura en src/utils/calculations.ts. Cloudflare Worker (worker/index.js)
+    como proxy que protege la ANTHROPIC_API_KEY; OCR con claude-haiku-4-5.
+  Testing: Vitest 4.1 (environment node, solo funciones puras). Cero tests hoy.
+  Style: TS strict sin `any`; paleta ÚNICAMENTE vía CSS vars de src/theme.css (cero hex en
+    componentes); todos los textos en español colombiano; moneda COP sin decimales ($1.500);
+    modo oscuro permanente; preguntar antes de borrar o renombrar archivos.
+
+strict_tdd: true
+
+testing:
+  strict_tdd: true
+  detected: 2026-10-27
+  runner:
+    framework: Vitest 4.1.11
+    command: npm run test          # vitest run
+    watch: npm run test:watch
+    config: vitest.config.ts       # separado de vite.config.ts a propósito: evita el plugin PWA en tests
+    environment: node
+    include: ["src/**/*.{test,spec}.ts"]
+    existing_test_files: 0
+    exit_code_today: 1
+    gotcha: "VERIFICADO 2026-10-27: con cero archivos de test, `npm run test` sale con
+             código 1 ('No test files found, exiting with code 1'). NO es un fallo de la
+             suite: es Vitest sin nada que correr. El primer change que añada un test en
+             src/utils/ lo convierte en exit 0. Hasta entonces, sdd-verify NO debe
+             interpretar ese 1 como regresión."
+  layers:
+    unit:
+      available: true
+      tool: Vitest
+      scope: solo funciones puras (src/utils/) — el include es *.ts, NO cubre *.tsx
+    integration:
+      available: false
+      tool: null
+      missing: ["jsdom", "@testing-library/react", "@testing-library/jest-dom"]
+      note: "@vitejs/plugin-react 6.0.2 YA está instalado; faltan jsdom y testing-library,
+             y habría que añadir environment jsdom + include de *.tsx en vitest.config.ts"
+    e2e:
+      available: false
+      tool: null
+      missing: ["playwright", "cypress"]
+  coverage:
+    available: false
+    command: null
+    missing: ["@vitest/coverage-v8"]
+  quality:
+    linter:
+      available: false
+      note: "no hay ESLint ni Prettier en el repo; el estilo se infiere de TS strict.
+             Existe .gga (Gentleman Guardian Angel) pero apunta a un RULES_FILE externo
+             (~/.config/opencode/AGENTS.md), no es un linter del proyecto."
+    type_checker:
+      available: true
+      command: npm run typecheck    # tsc --noEmit
+    formatter:
+      available: false
+  ci:
+    available: false
+    note: "no existe .github/workflows"
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+    - Flag any change that touches src/utils/calculations.ts as money-logic (higher risk)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Montos de ejemplo en COP sin decimales y con punto de miles ($1.500)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - "TRAMPA CONOCIDA: la fórmula del total está triplicada y debe quedar sincronizada:
+       src/hooks/useBillSplit.ts (total global), src/utils/calculations.ts (total por persona)
+       y src/components/steps/Step5TaxTip.tsx (preview en vivo).
+       Todo cambio en la lógica de total DEBE tocar las tres."
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills for the project stack
+    - "STRICT TDD ACOTADO (decisión de sesión 2026-10-27): el modo estricto aplica SOLO a
+       funciones puras bajo src/utils/. Los componentes React quedan EXENTOS porque jsdom y
+       @testing-library/react no están instalados y vitest.config.ts solo incluye *.ts.
+       Levantar la exención requiere instalar esas deps y ampliar el include a *.tsx."
+    - Nunca usar `any` en TypeScript
+    - Nunca escribir colores hex en componentes — solo CSS vars de src/theme.css
+    - Preguntar antes de eliminar o renombrar archivos
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+    - "Verificación mínima disponible hoy: npm run typecheck (exit 0 verificado).
+       No hay linter, coverage ni E2E."
+    - "NO tratar `npm run test` exit 1 como regresión mientras existing_test_files sea 0
+       (ver testing.runner.gotcha). Vitest falla por suite vacía, no por tests rotos."
+  archive:
+    - Warn before merging destructive deltas (large removals)
+
+# Convivencia de frameworks de planeación en este repo — NO confundirlos:
+#   openspec/   → SDD (este framework). Artefactos de change: proposal, specs, design, tasks.
+#   .planning/  → GSD Core 1.11.0 (instalación local, scope project). Hoy solo tiene
+#                 .planning/codebase/ (8 docs de gsd-map-codebase, 2026-08-25);
+#                 ROADMAP.md / PROJECT.md / STATE.md NO existen.
+# GSD registra 7 hooks PreToolUse activos (gsd-write-guard.js, gsd-workflow-guard.js,
+# gsd-agent-isolation-guard.js, entre otros) que interceptan Write|Edit|Bash|Agent|Task.
+# Verificado el 2026-10-27: NO bloquean escrituras a openspec/.

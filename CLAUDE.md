@@ -338,7 +338,8 @@ descuidos, sin importar qué modelo se le ponga.
 - [x] ItemForm con botones +/− y edición libre de cantidad
 - [x] Toggle IVA incluido/no incluido en Step5
 - [x] Propina calculada sobre base pre-IVA, redondeada al $100 superior
-- [x] Total y totales por persona redondeados al $100 más cercano
+- [x] Total global redondeado al $100 más cercano; totales por persona exactos, sin
+      redondear (commit 60f566a — decisión deliberada, no un descuido)
 - [x] Modo oscuro permanente (sin toggle, class="dark" fijo en <html>)
 - [x] Botón WhatsApp por persona en Step6 para compartir monto individual
 - [x] Seguridad básica del Worker: CORS seguro, límite de imagen, timeout, sanitización OCR

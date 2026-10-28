@@ -6,7 +6,7 @@ import ErrorMessage from '../ui/ErrorMessage';
 import { useHaptic } from '../../hooks/useHaptic';
 
 export default function Step1Entry() {
-  const { dispatch, nextStep } = useBill();
+  const { state, dispatch, nextStep } = useBill();
   const haptic = useHaptic();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -37,6 +37,8 @@ export default function Step1Entry() {
     }
   }, [haptic]);
 
+  const hasItems = state.items.length > 0;
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/*': [] },
@@ -52,6 +54,13 @@ export default function Step1Entry() {
   function handleManual() {
     haptic();
     dispatch({ type: 'SET_ENTRY_MODE', mode: 'manual' });
+    nextStep();
+  }
+
+  // El usuario volvió al paso 1 desde el stepper: ya hay ítems registrados.
+  // Continuar NO toca entryMode, para no marcar como "manual" una cuenta escaneada.
+  function handleKeepItems() {
+    haptic();
     nextStep();
   }
 
@@ -110,6 +119,40 @@ export default function Step1Entry() {
         </p>
       </div>
 
+      {/* Aviso al volver al paso 1: la foto no se conserva, pero los ítems sí */}
+      {hasItems && !preview && !isLoading && (
+        <div
+          className="rounded-2xl border p-4 flex flex-col gap-3"
+          style={{
+            borderColor: 'rgb(var(--color-purple-rgb) / 0.4)',
+            backgroundColor: 'rgb(var(--color-purple-rgb) / 0.08)',
+          }}
+        >
+          <div className="flex gap-3">
+            <span className="text-xl leading-none shrink-0">🔒</span>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-white)' }}>
+                La foto no se guarda
+              </p>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--color-muted)' }}>
+                Por seguridad, la imagen de tu factura se borra al salir de este paso.{' '}
+                {state.items.length === 1
+                  ? 'Tu ítem sigue registrado'
+                  : `Tus ${state.items.length} ítems siguen registrados`}
+                : puedes continuar sin volver a escanear.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleKeepItems}
+            className="w-full py-3 rounded-2xl font-bold active:opacity-80 transition-opacity"
+            style={{ backgroundColor: 'var(--color-purple)', color: 'var(--color-white)' }}
+          >
+            Continuar con mis ítems →
+          </button>
+        </div>
+      )}
+
       {/* Drag & drop zone + botones */}
       {!preview && !isLoading && (
         <>
@@ -126,10 +169,16 @@ export default function Step1Entry() {
             <span className="text-4xl">{isDragActive ? '📂' : '📷'}</span>
             <div>
               <p className="text-base font-semibold text-center" style={{ color: 'var(--color-white)' }}>
-                {isDragActive ? 'Suelta la imagen aquí' : 'Toca para subir o tomar foto'}
+                {isDragActive
+                  ? 'Suelta la imagen aquí'
+                  : hasItems
+                    ? 'Escanear otra factura'
+                    : 'Toca para subir o tomar foto'}
               </p>
               <p className="text-xs text-center mt-1" style={{ color: 'var(--color-muted)' }}>
-                También puedes arrastrar una imagen aquí
+                {hasItems
+                  ? 'Reemplaza los ítems que ya tienes'
+                  : 'También puedes arrastrar una imagen aquí'}
               </p>
             </div>
           </button>

@@ -1,10 +1,15 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useBill } from '../../context/BillContext';
+import { useHaptic } from '../../hooks/useHaptic';
 
 const STEP_LABELS = ['Foto', 'Ítems', 'Personas', 'Asignar', 'Impuesto', 'Resultado'];
 const N = STEP_LABELS.length;
 
 export default function Stepper() {
-  const { state } = useBill();
+  const { state, goToStep } = useBill();
+  const haptic = useHaptic();
+  const [focusedStep, setFocusedStep] = useState<number | null>(null);
   const current = state.step;
 
   // Each circle sits at the center of its flex-1 slot.
@@ -45,25 +50,52 @@ export default function Stepper() {
           const stepNum = (idx + 1) as 1 | 2 | 3 | 4 | 5 | 6;
           const isDone = stepNum < current;
           const isActive = stepNum === current;
+          // Solo los pasos ya recorridos son navegables. Hacia adelante se avanza
+          // con "Continuar", que es donde viven las validaciones de cada paso.
+          const canNavigate = isDone;
+          const isFocused = focusedStep === stepNum;
+
+          // El glow activo y el anillo de foco se apilan en el mismo boxShadow,
+          // por eso no se usa focus-visible: de Tailwind — lo sobrescribiría.
+          // El anillo es blanco con un gap del color del fondo: --glow-purple-ring
+          // es morado al 25 % y resulta invisible sobre un círculo ya morado.
+          const shadows = [
+            isActive ? 'var(--glow-purple)' : null,
+            isFocused ? '0 0 0 2px var(--color-darkest)' : null,
+            isFocused ? '0 0 0 4px var(--color-white)' : null,
+          ].filter(Boolean);
 
           return (
             <div key={stepNum} className="flex-1 flex flex-col items-center relative z-10">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all"
+              <motion.button
+                type="button"
+                disabled={!canNavigate}
+                onClick={() => {
+                  haptic();
+                  goToStep(stepNum);
+                }}
+                onFocus={() => setFocusedStep(stepNum)}
+                onBlur={() => setFocusedStep(null)}
+                whileTap={canNavigate ? { scale: 0.9 } : undefined}
+                aria-label={canNavigate ? `Volver al paso ${stepNum}: ${label}` : `Paso ${stepNum}: ${label}`}
+                aria-current={isActive ? 'step' : undefined}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all outline-none appearance-none ${
+                  canNavigate ? 'cursor-pointer' : 'cursor-default'
+                }`}
                 style={{
                   backgroundColor: isActive || isDone ? 'var(--color-purple)' : 'var(--color-muted-surface)',
-                  color: isActive || isDone ? '#ffffff' : 'var(--color-muted)',
-                  boxShadow: isActive ? 'var(--glow-purple)' : 'none',
+                  color: isActive || isDone ? 'var(--color-white)' : 'var(--color-muted)',
+                  boxShadow: shadows.length > 0 ? shadows.join(', ') : 'none',
                 }}
               >
                 {isDone ? (
                   <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block' }}>
-                    <path d="M2 6 L5 9 L10 3" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 6 L5 9 L10 3" stroke="var(--color-white)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 ) : (
                   <span style={{ lineHeight: 1 }}>{stepNum}</span>
                 )}
-              </div>
+              </motion.button>
               <span
                 className="mt-1 text-[10px] font-medium text-center transition-colors"
                 style={{ color: isActive || isDone ? 'var(--color-purple)' : 'var(--color-muted)' }}

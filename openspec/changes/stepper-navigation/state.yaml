@@ -6,22 +6,23 @@ updated: 2026-10-27
 risk: low
 strict_tdd_applies: false
 
-current_phase: proposal
+current_phase: verify
 
 phases:
   explore:  { status: done,    artifact: exploration.md }
   propose:  { status: done,    artifact: proposal.md }
-  spec:     { status: pending, artifact: specs/ }
-  design:   { status: pending, artifact: design.md }
-  tasks:    { status: pending, artifact: tasks.md }
-  apply:    { status: pending, artifact: null }
-  verify:   { status: pending, artifact: verify-report.md }
+  spec:     { status: done,    artifact: specs/step-navigation.md }
+  design:   { status: done,    artifact: design.md }
+  tasks:    { status: done,    artifact: tasks.md }
+  apply:    { status: done,    artifact: null }
+  verify:   { status: done,    artifact: verify-report.md }
   archive:  { status: pending, artifact: null }
 
-next_phase: spec
+next_phase: archive
 next_phase_note: >
-  Todas las decisiones estan CERRADAS (ver bloque decisions). sdd-spec solo tiene que
-  convertirlas en requisitos Given/When/Then.
+  Implementado y verificado en el navegador el 2026-10-27. Archivar mueve la carpeta a
+  openspec/changes/archive/ y fusiona specs/step-navigation.md en openspec/specs/.
+  Pendiente de que el usuario lo pruebe en su propio dispositivo antes de archivar.
 
 decisions:
   - id: paso-1-sin-foto
@@ -43,6 +44,21 @@ decisions:
       button real (no div con role), aria-current="step" en el paso activo, aria-label
       descriptivo por paso, disabled real en los no navegables y anillo de foco visible.
     rationale: Decision tecnica estandar, no de producto. Fijada por el orquestador.
+  - id: color-del-anillo-de-foco
+    closed: 2026-10-27
+    question: Que token de color usar para el anillo de foco del circulo.
+    answer: >
+      Anillo de --color-white con un gap de 2px de --color-darkest, apilado en el mismo
+      boxShadow que el glow del paso activo.
+    rationale: >
+      --glow-purple-ring se implemento primero y se descarto tras MIRARLO en el navegador:
+      es morado al 25% y resulta invisible sobre un circulo ya morado. El blanco mide
+      17,74:1 contra el fondo y 5,37:1 contra el circulo; WCAG 2.4.11 pide 3:1.
+      Ambas variables ya existian en src/theme.css.
+    rejected:
+      - --glow-purple-ring - invisible sobre el circulo morado, verificado en pantalla.
+      - --color-gold - el dorado ya significa "asignado" en PersonAvatar; reusarlo para
+        foco mezclaria dos significados distintos.
 
 # Cómo retomar en otra sesión (sin orquestador instalado):
 #   invocar la skill sdd-spec pasando explícitamente artifact_store.mode = openspec

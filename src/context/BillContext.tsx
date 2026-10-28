@@ -143,6 +143,7 @@ interface BillContextValue {
   dispatch: React.Dispatch<BillAction>;
   nextStep: () => void;
   prevStep: () => void;
+  goToStep: (step: BillState['step']) => void;
   nextPersonColor: () => string;
 }
 
@@ -163,12 +164,20 @@ export function BillProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Solo permite volver a un paso ANTERIOR. Un paso ya recorrido fue válido alguna vez
+  // para haber llegado al actual, así que no hay que revalidar nada del dominio.
+  function goToStep(step: BillState['step']) {
+    if (step >= 1 && step <= 6 && step < state.step) {
+      dispatch({ type: 'SET_STEP', step });
+    }
+  }
+
   function nextPersonColor(): string {
     return PERSON_COLORS[state.people.length % PERSON_COLORS.length];
   }
 
   return (
-    <BillContext.Provider value={{ state, dispatch, nextStep, prevStep, nextPersonColor }}>
+    <BillContext.Provider value={{ state, dispatch, nextStep, prevStep, goToStep, nextPersonColor }}>
       {children}
     </BillContext.Provider>
   );

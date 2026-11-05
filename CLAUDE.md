@@ -15,7 +15,7 @@ importante que tomes.
 - Avatares: @dicebear/core + @dicebear/collection (generación local, sin API externa)
 - PWA: vite-plugin-pwa
 - Backend/Proxy: Cloudflare Worker (para proteger la API key)
-- OCR: Claude Vision API (claude-haiku-4-5) via el Worker
+- OCR: Claude Vision API (claude-haiku-5-5) via el Worker
 
 ## Arquitectura de seguridad
 El frontend NUNCA llama directamente a Anthropic.
@@ -153,7 +153,7 @@ interface BillState {
 - Rate limit: máximo 20 requests por IP por hora usando Map en memoria (no KV)
 - Recibir: { image: base64string, mediaType: string }
 - Límite de imagen: 8MB base64 (~6MB comprimida). Responde 413 si supera.
-- Modelo: claude-haiku-4-5
+- Modelo: claude-haiku-5-5
 - Timeout hacia Anthropic: 25 segundos (AbortController). Responde 504 si se agota.
 - Retornar: { items: [{name, price, quantity}], currency } o { error: mensaje }
 - Los ítems del OCR se sanitizan antes de retornar: name truncado a 200 chars, price redondeado y ≥ 0, quantity entre 1–99
@@ -334,7 +334,7 @@ descuidos, sin importar qué modelo se le ponga.
 - [x] Cloudflare Worker desplegado y conectado
 - [x] Deploy en Vercel funcionando
 - [x] PWA instalable (icono SVG en public/icons/icon.svg)
-- [x] Cámara + OCR funcionando con claude-haiku-4-5
+- [x] Cámara + OCR funcionando con claude-haiku-5-5
 - [x] ItemForm con botones +/− y edición libre de cantidad
 - [x] Toggle IVA incluido/no incluido en Step5
 - [x] Propina calculada sobre base pre-IVA, redondeada al $100 superior

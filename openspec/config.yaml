@@ -8,7 +8,7 @@ context: |
   Architecture: PWA mobile-first de 6 pasos. Estado global con useReducer en
     src/context/BillContext.tsx (sin localStorage ni cookies — se pierde al cerrar, es intencional).
     Lógica de dinero pura en src/utils/calculations.ts. Cloudflare Worker (worker/index.js)
-    como proxy que protege la ANTHROPIC_API_KEY; OCR con claude-haiku-4-5.
+    como proxy que protege la ANTHROPIC_API_KEY; OCR con claude-haiku-5-5.
   Testing: Vitest 4.1 (environment node, solo funciones puras). Cero tests hoy.
   Style: TS strict sin `any`; paleta ÚNICAMENTE vía CSS vars de src/theme.css (cero hex en
     componentes); todos los textos en español colombiano; moneda COP sin decimales ($1.500);

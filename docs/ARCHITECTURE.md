@@ -8,7 +8,7 @@
 │  Navegador / PWA instalada      │        │                              │
 │  (móvil o desktop)              │        │  ┌────────────────────────┐  │
 └──────────────┬──────────────────┘        │  │  Anthropic API         │  │
-               │                           │  │  claude-haiku-4-5      │  │
+               │                           │  │  claude-haiku-5-5      │  │
                │  HTTP (fetch)             │  │  Vision (OCR)          │  │
                ▼                           │  └────────────┬───────────┘  │
 ┌──────────────────────────────────┐        │               ▲              │

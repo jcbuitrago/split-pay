@@ -86,8 +86,14 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5',
-          max_tokens: 1024,
+          model: 'claude-haiku-5-5',
+          // El OCR es extracción pura: no necesita razonar. En Haiku 5.5 el thinking
+          // viene ACTIVADO por defecto, así que hay que apagarlo explícitamente o
+          // pagaríamos tokens de salida que no aportan nada a la factura.
+          thinking: { type: 'disabled' },
+          // 2048 y no 1024: el tokenizador de Haiku 5.5 cuenta ~30% más tokens para
+          // el mismo texto, así que el JSON de una factura larga podría truncarse.
+          max_tokens: 2048,
           messages: [
             {
               role: 'user',
@@ -132,7 +138,22 @@ Los precios deben ser números sin símbolos de moneda ni puntos de miles.`;
     try {
       const responseBodyText = await readBodyWithLimit(anthropicResponse, 1024 * 1024); // Máximo 1MB
       const aiData = JSON.parse(responseBodyText);
-      rawText = aiData?.content?.[0]?.text ?? '';
+
+      // Haiku 5.5 corre clasificadores de seguridad que pueden declinar la petición
+      // con un HTTP 200 y stop_reason "refusal". Hay que ramificar ANTES de leer
+      // content, que en ese caso no trae el texto esperado.
+      if (aiData?.stop_reason === 'refusal') {
+        console.error('Anthropic refusal:', aiData?.stop_details?.category);
+        return corsResponse({ error: 'No se pudo procesar esta imagen. Intenta con otra foto.' }, 422, allowedOrigin);
+      }
+
+      // Buscar el bloque por TIPO, no por posición: con thinking activo content[0]
+      // sería un bloque de thinking y no el texto. Hoy lo mandamos desactivado,
+      // pero leer por posición es justo lo que rompe si eso cambia.
+      const textBlock = Array.isArray(aiData?.content)
+        ? aiData.content.find(block => block?.type === 'text')
+        : undefined;
+      rawText = textBlock?.text ?? '';
     } catch (err) {
       console.error('Failed to read or parse Anthropic response:', err);
       return corsResponse({ error: 'La respuesta del servicio de OCR no pudo ser procesada.' }, 502, allowedOrigin);

@@ -309,7 +309,7 @@ Request POST /scan
   │    • image.length ≤ 8 MB base64 (~6 MB comprimida) → 413 si excede
   │    • mediaType normalizado a lista permitida [jpeg, png, gif, webp]
   │
-  ├─ Llamada a Anthropic claude-haiku-4-5 con:
+  ├─ Llamada a Anthropic claude-haiku-5-5 con:
   │    • max_tokens: 1024
   │    • Timeout: 25 segundos (AbortController) → 504 si se agota
   │    • Prompt: extrae ítems, responde JSON puro

@@ -27,7 +27,7 @@ PWA para dividir cuentas de restaurante. Escanea la factura con la cámara, asig
 | Estilos | Tailwind CSS |
 | PWA | vite-plugin-pwa (Workbox) |
 | Backend | Cloudflare Worker |
-| OCR | Claude Vision API (`claude-haiku-4-5`) |
+| OCR | Claude Vision API (`claude-haiku-5-5`) |
 | Deploy frontend | Vercel |
 | Deploy worker | Cloudflare Workers |
 

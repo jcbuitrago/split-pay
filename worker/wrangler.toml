@@ -3,7 +3,21 @@ main = "index.js"
 compatibility_date = "2024-11-01"
 
 # El Worker se despliega en la ruta /scan de tu subdominio de Cloudflare Workers
-# URL resultante: https://splitbill-worker.TU_USUARIO.workers.dev
+#
+# Esta configuración de nivel superior ES el entorno de PRODUCCIÓN:
+#   npx wrangler deploy --env=""     → https://splitbill-worker.jcbuitrago99.workers.dev
+#
+# El entorno de desarrollo está en el bloque [env.dev] al final del archivo:
+#   npx wrangler deploy --env dev    → https://splitbill-worker-dev.jcbuitrago99.workers.dev
+#
+# El --env="" de producción es a propósito. Desde que existe más de un entorno,
+# un `wrangler deploy` a secas despliega al nivel superior pero lanza un warning
+# pidiendo que el destino sea explícito. Pasar --env="" apunta al nivel superior
+# sin ambigüedad: es la diferencia entre elegir producción y caer en ella.
+#
+# OJO: NO crear un bloque [env.production]. Al hacerlo, Wrangler renombraría el
+# Worker a "splitbill-worker-production" y la URL que usan los usuarios hoy
+# dejaría de existir. Producción se queda en el nivel superior, sin bloque.
 
 # ─────────────────────────────────────────────────────────────────
 # KV NAMESPACE PARA RATE LIMITING (OPCIONAL EN PROD)
@@ -17,11 +31,41 @@ compatibility_date = "2024-11-01"
 # ─────────────────────────────────────────────────────────────────
 
 # ─────────────────────────────────────────────────────────────────
-# SECRETOS — no van en este archivo, se configuran con la CLI:
+# SECRETOS — no van en este archivo, se configuran con la CLI.
 #
+# IMPORTANTE: los secretos NO se heredan entre entornos. Cada uno guarda los
+# suyos, así que hay que ponerlos dos veces.
+#
+# Producción:
 #   npx wrangler secret put ANTHROPIC_API_KEY
 #   npx wrangler secret put ALLOWED_ORIGIN
 #
-# ALLOWED_ORIGIN debe ser la URL exacta de tu frontend, por ejemplo:
-#   https://splitbill.vercel.app
+# Desarrollo:
+#   npx wrangler secret put ANTHROPIC_API_KEY --env dev
+#   npx wrangler secret put ALLOWED_ORIGIN    --env dev
+#
+# Que estén separados es una ventaja: si pones una API key distinta en dev,
+# el gasto de tokens de tus pruebas no se mezcla con el de los usuarios reales.
+#
+# ALLOWED_ORIGIN acepta una lista separada por comas con los orígenes EXACTOS
+# del frontend (esquema + host, sin ruta ni barra final):
+#
+#   Producción → https://split-pay-ochre.vercel.app
+#   Desarrollo → http://localhost:5173,https://split-pay-git-dev-TU_SLUG.vercel.app
+#
+# Para el origen de dev usa la URL ESTABLE DE RAMA de Vercel, no la del deploy.
+# Vercel genera dos URLs por cada push a una rama:
+#   • una por deploy, con un hash que cambia siempre  → inservible en la whitelist
+#   • una por rama, estable                           → esta es la que sirve
+# El slug lo saca Vercel de tu cuenta; cópialo literal del panel del deployment,
+# en la sección "Domains", en vez de intentar construirlo a mano.
 # ─────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────
+# ENTORNO DE DESARROLLO
+#
+# Un Worker aparte, con su propio código, sus propios secretos y su propia URL.
+# Despliega aquí y prueba una factura real antes de ir a producción.
+# ─────────────────────────────────────────────────────────────────
+[env.dev]
+name = "splitbill-worker-dev"
